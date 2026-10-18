@@ -1,0 +1,24 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+.vite/
+
+# Environment — never commit secrets
+.env
+.env.*
+!.env.example
+
+# Foundry
+contracts/out/
+contracts/cache/
+
+# Logs & debug
+*.log
+traces.jsonl
+console.jsonl
+
+# OS
+.DS_Store
+Thumbs.db

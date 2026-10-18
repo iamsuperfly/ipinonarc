@@ -1,0 +1,172 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─── IPIN design tokens ─── */
+:root {
+  --color-ground: #f7f6f2;
+  --color-panel: #fffdf8;
+  --color-ink: #1b1813;
+  --color-mute: #6d6b64;
+  --color-laterite: #007a66;
+  --color-laterite-deep: #9a3f16;
+  --color-river: #2f6f6b;
+  --color-danger: #b42318;
+  --header-height: 4rem;
+}
+
+@media (min-width: 640px) {
+  :root { --header-height: 4.25rem; }
+}
+
+* { box-sizing: border-box; }
+
+html {
+  scroll-behavior: smooth;
+  overflow-x: hidden;
+}
+
+body {
+  margin: 0;
+  font-family: "Segoe UI", "Helvetica Neue", sans-serif;
+  background: var(--color-ground);
+  color: var(--color-ink);
+  min-height: 100dvh;
+  overflow-x: hidden;
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* noise texture — same as your repo */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.22;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='.55'/%3E%3C/svg%3E");
+}
+
+main, footer, header {
+  position: relative;
+  z-index: 1;
+}
+
+/* ─── Typography ─── */
+.font-display { font-family: "Segoe UI", "Helvetica Neue", sans-serif; }
+.font-mono    { font-family: ui-monospace, "SFMono-Regular", Menlo, monospace; }
+.phrase       { color: var(--color-laterite); }
+
+/* ─── Buttons ─── */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 3rem;
+  padding: 0 1.35rem;
+  border-radius: 999px;
+  background: var(--color-laterite);
+  color: #fffdf8;
+  font-weight: 600;
+  font-family: inherit;
+  font-size: 0.9375rem;
+  transition: transform 0.15s ease, background 0.15s ease;
+  box-shadow: 0 8px 18px rgba(0, 122, 102, 0.22);
+  cursor: pointer;
+  border: none;
+}
+.btn-primary:hover  { background: #005e4e; }
+.btn-primary:active { transform: scale(0.98); }
+.btn-primary:disabled { opacity: 0.45; pointer-events: none; }
+
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 3rem;
+  padding: 0 1.2rem;
+  border-radius: 999px;
+  border: 1px solid rgba(27, 24, 19, 0.15);
+  background: #fffdf8;
+  color: var(--color-ink);
+  font-weight: 600;
+  font-family: inherit;
+  font-size: 0.9375rem;
+  transition: transform 0.15s ease, border-color 0.15s ease;
+  cursor: pointer;
+}
+.btn-ghost:hover  { border-color: rgba(0, 122, 102, 0.55); }
+.btn-ghost:active { transform: scale(0.98); }
+.btn-ghost:disabled { opacity: 0.45; pointer-events: none; }
+
+.btn-danger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 3rem;
+  padding: 0 1.2rem;
+  border-radius: 999px;
+  border: 1px solid rgba(180, 35, 24, 0.25);
+  background: #fffdf8;
+  color: var(--color-danger);
+  font-weight: 600;
+  font-family: inherit;
+  font-size: 0.9375rem;
+  transition: transform 0.15s ease;
+  cursor: pointer;
+}
+.btn-danger:hover  { border-color: var(--color-danger); }
+.btn-danger:active { transform: scale(0.98); }
+.btn-danger:disabled { opacity: 0.45; pointer-events: none; }
+
+/* ─── Input ─── */
+.input-base {
+  height: 3rem;
+  width: 100%;
+  border-radius: 1rem;
+  border: 1px solid rgba(27, 24, 19, 0.15);
+  background: var(--color-ground);
+  padding: 0 1rem;
+  font-family: inherit;
+  font-size: 0.9375rem;
+  color: var(--color-ink);
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+.input-base:focus  { border-color: var(--color-laterite); }
+.input-base::placeholder { color: var(--color-mute); }
+
+.input-mono {
+  font-family: ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+
+/* ─── Animations ─── */
+.rise-in {
+  animation: rise 0.6s ease both;
+}
+@keyframes rise {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.stamp {
+  animation: stamp 0.35s ease both;
+  color: var(--color-river);
+}
+@keyframes stamp {
+  from { transform: scale(1.25) rotate(-8deg); opacity: 0; }
+  to   { transform: scale(1) rotate(0deg);     opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rise-in, .stamp { animation: none; }
+  .btn-primary, .btn-ghost, .btn-danger { transition: none; }
+}
+
+/* ─── Sonner toast override ─── */
+[data-sonner-toast] {
+  font-family: "Segoe UI", "Helvetica Neue", sans-serif !important;
+  border-radius: 1rem !important;
+}

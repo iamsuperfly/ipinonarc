@@ -37,8 +37,12 @@ export default function CreatePotModal({ open, onClose, onCreated }: Props) {
   ])
 
   // Keep wagmi hooks alive at top level — never inside a conditional
-  const { writeContract, data: hash, isPending, reset } = useWriteContract()
-  const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash })
+  const { writeContract, data: hash, isPending, error: writeError, reset } = useWriteContract()
+  const { isLoading: isConfirming, isSuccess, error: receiptError } = useWaitForTransactionReceipt({
+    hash,
+    // Don't start watching until we actually have a hash
+    query: { enabled: !!hash },
+  })
 
   const resetForm = useCallback(() => {
     setName('')
@@ -101,15 +105,11 @@ export default function CreatePotModal({ open, onClose, onCreated }: Props) {
       for (let i = 0; i < addresses.length; i++) amounts.push(perPersonRaw)
     }
 
-    try {
-      writeContract({
-        ...IPIN_CONTRACT,
-        functionName: 'createPot',
-        args: [name.trim(), addresses as `0x${string}`[], amounts],
-      })
-    } catch (e) {
-      toast.error(parseOnchainError(e))
-    }
+    writeContract({
+      ...IPIN_CONTRACT,
+      functionName: 'createPot',
+      args: [name.trim(), addresses as `0x${string}`[], amounts],
+    })
   }
 
   const filledAddresses = rows.filter(r => r.address.trim()).length
@@ -269,6 +269,16 @@ export default function CreatePotModal({ open, onClose, onCreated }: Props) {
                 >
                   <Loader2 className="size-4 shrink-0 animate-spin" />
                   {isPending ? 'Check your wallet to confirm…' : 'Transaction confirming on Arc…'}
+                </div>
+              )}
+
+              {/* Error display */}
+              {(writeError || receiptError) && (
+                <div
+                  className="mb-4 rounded-2xl px-4 py-3 text-sm"
+                  style={{ background: 'rgba(220,38,38,0.08)', color: 'var(--color-danger)' }}
+                >
+                  {parseOnchainError(writeError ?? receiptError)}
                 </div>
               )}
 

@@ -86,15 +86,24 @@ export default function Header({ onCreatePot }: Props) {
           <ConnectButton />
         </div>
 
-        {/* Mobile: hamburger */}
-        <button
-          className="flex size-11 items-center justify-center rounded-full border sm:hidden"
-          style={{ borderColor: 'rgba(27,24,19,0.15)' }}
-          onClick={() => setMobileOpen(v => !v)}
-          aria-label="Menu"
-        >
-          {mobileOpen ? <X className="size-5" /> : <Menu className="size-5" />}
-        </button>
+        {/* Mobile: hamburger — only when connected */}
+        {isConnected && (
+          <button
+            className="flex size-11 items-center justify-center rounded-full border sm:hidden"
+            style={{ borderColor: 'rgba(27,24,19,0.15)' }}
+            onClick={() => setMobileOpen(v => !v)}
+            aria-label="Menu"
+          >
+            {mobileOpen ? <X className="size-5" /> : <Menu className="size-5" />}
+          </button>
+        )}
+
+        {/* Mobile: connect button when not connected */}
+        {!isConnected && (
+          <div className="sm:hidden">
+            <ConnectButton />
+          </div>
+        )}
       </div>
 
       {/* Mobile drawer */}

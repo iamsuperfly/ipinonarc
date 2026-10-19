@@ -3,8 +3,10 @@ import { useAccount, useWriteContract, useWaitForTransactionReceipt, useSwitchCh
 import { AnimatePresence, motion } from 'framer-motion'
 import { X, Plus, Trash2, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
+import { decodeEventLog } from 'viem'
 import { IPIN_CONTRACT, ARC_TESTNET_CHAIN_ID } from '../contract'
 import { parseOnchainError } from '../utils'
+import { savePot } from '../supabase'
 
 /** Parse a human USDC string (e.g. "10.50") into 6-decimal bigint */
 function parseUsdc(value: string): bigint {
@@ -26,7 +28,7 @@ interface Props {
 }
 
 export default function CreatePotModal({ open, onClose, onCreated }: Props) {
-  const { chainId } = useAccount()
+  const { chainId, address } = useAccount()
   const { switchChain } = useSwitchChain()
   const [name, setName] = useState('')
   const [splitMode, setSplitMode] = useState<'equal' | 'custom'>('equal')
@@ -38,9 +40,8 @@ export default function CreatePotModal({ open, onClose, onCreated }: Props) {
 
   // Keep wagmi hooks alive at top level — never inside a conditional
   const { writeContract, data: hash, isPending, error: writeError, reset } = useWriteContract()
-  const { isLoading: isConfirming, isSuccess, error: receiptError } = useWaitForTransactionReceipt({
+  const { isLoading: isConfirming, isSuccess, data: receipt, error: receiptError } = useWaitForTransactionReceipt({
     hash,
-    // Don't start watching until we actually have a hash
     query: { enabled: !!hash },
   })
 
@@ -52,12 +53,43 @@ export default function CreatePotModal({ open, onClose, onCreated }: Props) {
     reset()
   }, [reset])
 
-  // When tx confirms, notify parent — the modal stays mounted so this always fires
+  // When tx confirms: save to Supabase then notify parent
   useEffect(() => {
-    if (!isSuccess) return
-    toast.success('Pot created!')
-    onCreated()
-    resetForm()
+    if (!isSuccess || !receipt) return
+
+    // Decode PotCreated event from receipt logs to get potId + totalAllocated
+    void (async () => {
+      try {
+        for (const log of receipt.logs) {
+          try {
+            const decoded = decodeEventLog({
+              abi: IPIN_CONTRACT.abi,
+              eventName: 'PotCreated',
+              data: log.data,
+              topics: log.topics,
+            })
+            const args = (decoded.args as unknown) as { potId: bigint; name: string; totalAllocated: bigint }
+            await savePot({
+              potId: args.potId,
+              owner: address ?? '',
+              name: args.name,
+              totalAllocated: args.totalAllocated,
+              txHash: receipt.transactionHash,
+              chainId: ARC_TESTNET_CHAIN_ID,
+            })
+            break
+          } catch {
+            // Not the PotCreated log, skip
+          }
+        }
+      } catch {
+        // Supabase save failed — pot is still onchain, just won't appear until RPC fallback
+        console.error('Failed to save pot to Supabase')
+      }
+      toast.success('Pot created!')
+      onCreated()
+      resetForm()
+    })()
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isSuccess])
 

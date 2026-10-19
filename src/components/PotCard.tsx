@@ -4,9 +4,13 @@ import { ChevronDown, ChevronUp, CheckCircle, XCircle, Clock, Loader2, ExternalL
 import { toast } from 'sonner'
 import { IPIN_CONTRACT, ARC_TESTNET_CHAIN_ID } from '../contract'
 import { formatAddress, formatUsdc, parseOnchainError } from '../utils'
-import { buildTxExplorerUrl } from '@/onchain-facts'
 import FundSheet from './FundSheet'
 import WithdrawSheet from './WithdrawSheet'
+
+/** Build an Arc Testnet explorer URL for a transaction hash */
+function buildTxExplorerUrl(hash: string): string {
+  return `https://explorer.testnet.arc.io/tx/${hash}`
+}
 
 interface RecipientData {
   addr: string
@@ -242,7 +246,7 @@ export default function PotCard({ potId, onRefresh }: Props) {
           {/* Explorer link */}
           {payHash && (
             <a
-              href={buildTxExplorerUrl(ARC_TESTNET_CHAIN_ID, payHash)}
+              href={buildTxExplorerUrl(payHash)}
               target="_blank"
               rel="noreferrer"
               className="mt-3 inline-flex items-center gap-1 text-xs"

@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react'
 import { useAccount, usePublicClient } from 'wagmi'
 import { Loader2, RefreshCw } from 'lucide-react'
 import { parseAbiItem } from 'viem'
-import { IPIN_CONTRACT, IPIN_ADDRESS, ARC_TESTNET_CHAIN_ID } from '../contract'
+import { IPIN_ADDRESS, IPIN_DEPLOY_BLOCK, ARC_TESTNET_CHAIN_ID } from '../contract'
+import { fetchPotIds } from '../supabase'
 import PotCard from './PotCard'
 
 interface Props {
@@ -21,21 +22,28 @@ export default function PotList({ refreshKey, onRefresh }: Props) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    if (!address || !client) { setLoading(false); return }
-
-    // Only show spinner on the very first load
-    setPotIds(prev => { if (prev.length === 0) setLoading(true); return prev })
+    if (!address) { setLoading(false); return }
 
     void (async () => {
+      // Primary: query Supabase — instant, no RPC calls, cross-device
+      const ids = await fetchPotIds(address, ARC_TESTNET_CHAIN_ID)
+
+      if (ids.length > 0) {
+        setPotIds(ids)
+        setLoading(false)
+        return
+      }
+
+      // Fallback: scan RPC logs in 9999-block batches if Supabase has nothing
+      // (e.g. pots created before Supabase was wired up)
+      if (!client) { setLoading(false); return }
+
       try {
         const head = await client.getBlockNumber()
-        // Scan from contract deploy block in 10k-block batches
-        // Arc Testnet RPC rejects ranges larger than ~10k blocks
-        const DEPLOY_BLOCK = 67386375n
         const BATCH = 9999n
         const allIds: bigint[] = []
 
-        for (let from = DEPLOY_BLOCK; from <= head; from += BATCH + 1n) {
+        for (let from = IPIN_DEPLOY_BLOCK; from <= head; from += BATCH + 1n) {
           const to = from + BATCH > head ? head : from + BATCH
           try {
             const logs = await client.getLogs({
@@ -54,21 +62,34 @@ export default function PotList({ refreshKey, onRefresh }: Props) {
           }
         }
 
-        // Newest first
         setPotIds(allIds.reverse())
       } catch {
-        // Keep existing ids on error so screen doesn't blank out
+        // Keep existing ids on error
       } finally {
         setLoading(false)
       }
     })()
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [address, client, refreshKey])
+  }, [address, refreshKey])
 
   if (loading) {
     return (
       <div className="flex justify-center py-20">
         <Loader2 className="size-6 animate-spin" style={{ color: 'var(--color-mute)' }} />
+      </div>
+    )
+  }
+
+  if (!address) {
+    return (
+      <div
+        className="rise-in rounded-3xl border p-10 text-center"
+        style={{ borderColor: 'rgba(27,24,19,0.10)', background: 'var(--color-panel)' }}
+      >
+        <h3 className="text-xl font-bold">Connect your wallet</h3>
+        <p className="mx-auto mt-2 max-w-xs text-sm" style={{ color: 'var(--color-mute)' }}>
+          Connect to see your pots.
+        </p>
       </div>
     )
   }
@@ -99,11 +120,11 @@ export default function PotList({ refreshKey, onRefresh }: Props) {
           className="flex items-center gap-1.5 text-xs"
           style={{ color: 'var(--color-mute)' }}
         >
-          <RefreshCw className="size-3.5" />
+          <RefreshCw className="size-3" />
           Refresh
         </button>
       </div>
-      <div className="grid gap-5 md:grid-cols-2">
+      <div className="flex flex-col gap-4">
         {potIds.map(id => (
           <PotCard
             key={id.toString()}
@@ -115,6 +136,3 @@ export default function PotList({ refreshKey, onRefresh }: Props) {
     </div>
   )
 }
-
-// Re-export contract ref so PotCard can still import from contract.ts
-export { IPIN_CONTRACT }

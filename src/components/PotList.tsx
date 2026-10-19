@@ -23,27 +23,39 @@ export default function PotList({ refreshKey, onRefresh }: Props) {
   useEffect(() => {
     if (!address || !client) { setLoading(false); return }
 
-    // Only show spinner on the very first load, not on every refresh
+    // Only show spinner on the very first load
     setPotIds(prev => { if (prev.length === 0) setLoading(true); return prev })
 
     void (async () => {
       try {
-        // Get current block and scan back up to 500k blocks (covers all testnet history cheaply)
         const head = await client.getBlockNumber()
-        const fromBlock = head > 500_000n ? head - 500_000n : 0n
-        const logs = await client.getLogs({
-          address: IPIN_ADDRESS,
-          event: POT_CREATED_EVENT,
-          args: { owner: address },
-          fromBlock,
-          toBlock: 'latest',
-        })
+        // Scan from contract deploy block in 10k-block batches
+        // Arc Testnet RPC rejects ranges larger than ~10k blocks
+        const DEPLOY_BLOCK = 67386375n
+        const BATCH = 9999n
+        const allIds: bigint[] = []
+
+        for (let from = DEPLOY_BLOCK; from <= head; from += BATCH + 1n) {
+          const to = from + BATCH > head ? head : from + BATCH
+          try {
+            const logs = await client.getLogs({
+              address: IPIN_ADDRESS,
+              event: POT_CREATED_EVENT,
+              args: { owner: address },
+              fromBlock: from,
+              toBlock: to,
+            })
+            for (const l of logs) {
+              const id = (l.args as { potId: bigint }).potId
+              if (id) allIds.push(id)
+            }
+          } catch {
+            // Skip failed batch, continue
+          }
+        }
+
         // Newest first
-        const ids = logs
-          .map(l => (l.args as { potId: bigint }).potId)
-          .filter(Boolean)
-          .reverse()
-        setPotIds(ids)
+        setPotIds(allIds.reverse())
       } catch {
         // Keep existing ids on error so screen doesn't blank out
       } finally {

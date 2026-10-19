@@ -93,18 +93,18 @@ export default function FundSheet({ open, potId, totalAllocated, fundedAmount, o
         >
           <div className="absolute inset-0" style={{ background: 'rgba(27,24,19,0.45)', backdropFilter: 'blur(4px)' }} />
           <motion.section
-            className="relative w-full max-w-md overflow-hidden rounded-t-3xl"
-            style={{ background: 'var(--color-panel)', border: '1px solid rgba(27,24,19,0.10)' }}
+            className="relative flex w-full max-w-md flex-col rounded-t-3xl"
+            style={{ background: 'var(--color-panel)', border: '1px solid rgba(27,24,19,0.10)', maxHeight: '92dvh' }}
             initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
             transition={{ type: 'spring', damping: 30, stiffness: 300 }}
             onClick={e => e.stopPropagation()}
           >
             {/* drag handle */}
-            <div className="flex justify-center pt-3 pb-1">
+            <div className="flex shrink-0 justify-center pt-3 pb-1">
               <div className="h-1 w-10 rounded-full" style={{ background: 'rgba(27,24,19,0.15)' }} />
             </div>
 
-            <div className="px-6 pb-8 pt-3">
+            <div className="overflow-y-auto px-6 pb-8 pt-3">
               <div className="mb-5 flex items-center justify-between">
                 <h2 className="text-2xl font-bold">Fund pot</h2>
                 <button

@@ -135,12 +135,11 @@ export default function App() {
         </p>
       </footer>
 
-      {showCreate && (
-        <CreatePotModal
-          onClose={() => setShowCreate(false)}
-          onCreated={() => { setShowCreate(false); setRefreshKey(k => k + 1) }}
-        />
-      )}
+      <CreatePotModal
+        open={showCreate}
+        onClose={() => setShowCreate(false)}
+        onCreated={() => { setShowCreate(false); setRefreshKey(k => k + 1) }}
+      />
     </div>
   )
 }

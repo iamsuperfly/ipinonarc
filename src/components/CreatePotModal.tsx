@@ -20,11 +20,12 @@ interface RecipientRow {
 }
 
 interface Props {
+  open: boolean
   onClose: () => void
   onCreated: () => void
 }
 
-export default function CreatePotModal({ onClose, onCreated }: Props) {
+export default function CreatePotModal({ open, onClose, onCreated }: Props) {
   const { chainId } = useAccount()
   const { switchChain } = useSwitchChain()
   const [name, setName] = useState('')
@@ -35,34 +36,38 @@ export default function CreatePotModal({ onClose, onCreated }: Props) {
     { id: 2, address: '', amount: '' },
   ])
 
+  // Keep wagmi hooks alive at top level — never inside a conditional
   const { writeContract, data: hash, isPending, reset } = useWriteContract()
   const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash })
+
+  const resetForm = useCallback(() => {
+    setName('')
+    setSplitMode('equal')
+    setEqualTotal('')
+    setRows([{ id: 1, address: '', amount: '' }, { id: 2, address: '', amount: '' }])
+    reset()
+  }, [reset])
+
+  // When tx confirms, notify parent — the modal stays mounted so this always fires
+  useEffect(() => {
+    if (!isSuccess) return
+    toast.success('Pot created!')
+    onCreated()
+    resetForm()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isSuccess])
 
   const addRow = () => setRows(r => [...r, { id: Date.now(), address: '', amount: '' }])
   const removeRow = (id: number) => setRows(r => r.filter(x => x.id !== id))
   const updateRow = (id: number, field: 'address' | 'amount', value: string) =>
     setRows(r => r.map(x => x.id === id ? { ...x, [field]: value } : x))
 
-  const handleClose = useCallback(() => {
-    setName('')
-    setSplitMode('equal')
-    setEqualTotal('')
-    setRows([{ id: 1, address: '', amount: '' }, { id: 2, address: '', amount: '' }])
-    reset()
+  // Only allow closing if no tx is in flight
+  const handleClose = () => {
+    if (isPending || isConfirming) return
+    resetForm()
     onClose()
-  }, [onClose, reset])
-
-  // When tx confirms, notify parent and close — guarded by cleanup so it fires exactly once
-  useEffect(() => {
-    if (!isSuccess) return
-    let cancelled = false
-    // toast is fire-and-forget, safe outside render
-    toast.success('Pot created!')
-    if (!cancelled) { onCreated(); onClose() }
-    return () => { cancelled = true }
-  // onCreated and onClose are stable refs from the parent — exhaustive-deps is correct here
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isSuccess])
+  }
 
   const handleCreate = () => {
     if (chainId !== ARC_TESTNET_CHAIN_ID) {
@@ -111,164 +116,176 @@ export default function CreatePotModal({ onClose, onCreated }: Props) {
 
   return (
     <AnimatePresence>
-      <motion.div
-        className="fixed inset-0 z-50 flex items-end justify-center sm:items-center"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        onClick={handleClose}
-      >
-        {/* Backdrop */}
-        <div className="absolute inset-0" style={{ background: 'rgba(27,24,19,0.45)', backdropFilter: 'blur(4px)' }} />
-
-        <motion.section
-          className="relative flex w-full max-w-lg flex-col rounded-t-3xl sm:rounded-3xl"
-          style={{
-            background: 'var(--color-panel)',
-            border: '1px solid rgba(27,24,19,0.10)',
-            maxHeight: '92dvh',
-          }}
-          initial={{ y: '100%' }}
-          animate={{ y: 0 }}
-          exit={{ y: '100%' }}
-          transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-          onClick={e => e.stopPropagation()}
+      {open && (
+        <motion.div
+          className="fixed inset-0 z-50 flex items-end justify-center sm:items-center"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          onClick={handleClose}
         >
-          {/* drag handle */}
-          <div className="flex shrink-0 justify-center pt-3 pb-1 sm:hidden">
-            <div className="h-1 w-10 rounded-full" style={{ background: 'rgba(27,24,19,0.15)' }} />
-          </div>
+          {/* Backdrop */}
+          <div className="absolute inset-0" style={{ background: 'rgba(27,24,19,0.45)', backdropFilter: 'blur(4px)' }} />
 
-          <div className="overflow-y-auto px-6 pb-8 pt-4 sm:pt-6">
-            {/* Title row */}
-            <div className="mb-6 flex items-center justify-between">
-              <h2 className="text-2xl font-bold">Create a distribution</h2>
-              <button
-                onClick={handleClose}
-                className="flex size-9 items-center justify-center rounded-full transition-colors"
-                style={{ border: '1px solid rgba(27,24,19,0.15)', background: 'var(--color-ground)' }}
-              >
-                <X className="size-4" />
-              </button>
+          <motion.section
+            className="relative flex w-full max-w-lg flex-col rounded-t-3xl sm:rounded-3xl"
+            style={{
+              background: 'var(--color-panel)',
+              border: '1px solid rgba(27,24,19,0.10)',
+              maxHeight: '92dvh',
+            }}
+            initial={{ y: '100%' }}
+            animate={{ y: 0 }}
+            exit={{ y: '100%' }}
+            transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+            onClick={e => e.stopPropagation()}
+          >
+            {/* drag handle */}
+            <div className="flex shrink-0 justify-center pt-3 pb-1 sm:hidden">
+              <div className="h-1 w-10 rounded-full" style={{ background: 'rgba(27,24,19,0.15)' }} />
             </div>
 
-            {/* Name */}
-            <div className="mb-4">
-              <label className="mb-1.5 block text-sm" style={{ color: 'var(--color-mute)' }}>Name</label>
-              <input
-                value={name}
-                onChange={e => setName(e.target.value)}
-                placeholder="September rewards"
-                className="input-base"
-              />
-            </div>
-
-            {/* Split mode */}
-            <div className="mb-4">
-              <label className="mb-1.5 block text-sm" style={{ color: 'var(--color-mute)' }}>Split mode</label>
-              <div
-                className="flex rounded-2xl p-1 gap-1"
-                style={{ background: 'var(--color-ground)', border: '1px solid rgba(27,24,19,0.12)' }}
-              >
-                {(['equal', 'custom'] as const).map(mode => (
-                  <button
-                    key={mode}
-                    onClick={() => setSplitMode(mode)}
-                    className="flex-1 rounded-xl py-2 text-sm font-semibold capitalize transition-all"
-                    style={{
-                      background: splitMode === mode ? 'var(--color-laterite)' : 'transparent',
-                      color: splitMode === mode ? '#fffdf8' : 'var(--color-mute)',
-                    }}
-                  >
-                    {mode}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Equal total */}
-            {splitMode === 'equal' && (
-              <div className="mb-4">
-                <label className="mb-1.5 block text-sm" style={{ color: 'var(--color-mute)' }}>Total USDC</label>
-                <div
-                  className="flex h-14 items-center gap-2 rounded-2xl border px-4"
-                  style={{ borderColor: 'rgba(27,24,19,0.15)', background: 'var(--color-ground)' }}
-                >
-                  <input
-                    inputMode="decimal"
-                    value={equalTotal}
-                    onChange={e => { const v = e.target.value.replace(/[^0-9.]/g, ''); if (v === '' || /^\d*\.?\d*$/.test(v)) setEqualTotal(v) }}
-                    placeholder="0.00"
-                    className="flex-1 bg-transparent text-2xl font-bold tabular-nums outline-none placeholder:opacity-30"
-                    style={{ color: 'var(--color-ink)', fontFamily: 'ui-monospace, Menlo, monospace' }}
-                  />
-                  <span className="text-sm font-medium" style={{ color: 'var(--color-mute)' }}>USDC</span>
-                </div>
-                {equalTotal && filledAddresses > 0 && (
-                  <p className="mt-1 text-xs" style={{ color: 'var(--color-mute)' }}>
-                    {(parseFloat(equalTotal) / filledAddresses).toFixed(6)} USDC per recipient
-                  </p>
-                )}
-              </div>
-            )}
-
-            {/* Recipients */}
-            <div className="mb-5">
-              <label className="mb-1.5 block text-sm" style={{ color: 'var(--color-mute)' }}>Recipients</label>
-              <div className="space-y-2">
-                {rows.map((row, idx) => (
-                  <div key={row.id} className={`grid gap-2 ${splitMode === 'custom' ? 'grid-cols-[1fr_8rem_2.25rem]' : 'grid-cols-[1fr_2.25rem]'}`}>
-                    <input
-                      value={row.address}
-                      onChange={e => updateRow(row.id, 'address', e.target.value)}
-                      placeholder={`0x recipient ${idx + 1}`}
-                      className="input-base input-mono text-sm"
-                    />
-                    {splitMode === 'custom' && (
-                      <input
-                        inputMode="decimal"
-                        value={row.amount}
-                        onChange={e => { const v = e.target.value.replace(/[^0-9.]/g, ''); if (v === '' || /^\d*\.?\d*$/.test(v)) updateRow(row.id, 'amount', v) }}
-                        placeholder="0.00"
-                        className="input-base input-mono text-right"
-                      />
-                    )}
-                    <button
-                      onClick={() => removeRow(row.id)}
-                      disabled={rows.length <= 1}
-                      className="flex size-12 items-center justify-center rounded-2xl transition-colors hover:bg-red-50 disabled:pointer-events-none disabled:opacity-30"
-                      style={{ border: '1px solid rgba(27,24,19,0.12)', background: 'var(--color-ground)' }}
-                    >
-                      <Trash2 className="size-3.5" style={{ color: 'var(--color-danger)' }} />
-                    </button>
-                  </div>
-                ))}
-
+            <div className="overflow-y-auto px-6 pb-8 pt-4 sm:pt-6">
+              {/* Title row */}
+              <div className="mb-6 flex items-center justify-between">
+                <h2 className="text-2xl font-bold">Create a distribution</h2>
                 <button
-                  onClick={addRow}
-                  className="btn-ghost w-full gap-2 text-sm"
+                  onClick={handleClose}
+                  disabled={isPending || isConfirming}
+                  className="flex size-9 items-center justify-center rounded-full transition-colors disabled:opacity-40"
+                  style={{ border: '1px solid rgba(27,24,19,0.15)', background: 'var(--color-ground)' }}
                 >
-                  <Plus className="size-4" />
-                  Add recipient
+                  <X className="size-4" />
                 </button>
               </div>
-            </div>
 
-            {/* CTA */}
-            <button
-              onClick={handleCreate}
-              disabled={isPending || isConfirming}
-              className="btn-primary w-full"
-            >
-              {isPending
-                ? <span className="flex items-center gap-2"><Loader2 className="size-4 animate-spin" />Confirm in wallet…</span>
-                : isConfirming
-                ? <span className="flex items-center gap-2"><Loader2 className="size-4 animate-spin" />Creating…</span>
-                : 'Create distribution'}
-            </button>
-          </div>
-        </motion.section>
-      </motion.div>
+              {/* Name */}
+              <div className="mb-4">
+                <label className="mb-1.5 block text-sm" style={{ color: 'var(--color-mute)' }}>Name</label>
+                <input
+                  value={name}
+                  onChange={e => setName(e.target.value)}
+                  placeholder="September rewards"
+                  className="input-base"
+                />
+              </div>
+
+              {/* Split mode */}
+              <div className="mb-4">
+                <label className="mb-1.5 block text-sm" style={{ color: 'var(--color-mute)' }}>Split mode</label>
+                <div
+                  className="flex rounded-2xl p-1 gap-1"
+                  style={{ background: 'var(--color-ground)', border: '1px solid rgba(27,24,19,0.12)' }}
+                >
+                  {(['equal', 'custom'] as const).map(mode => (
+                    <button
+                      key={mode}
+                      onClick={() => setSplitMode(mode)}
+                      className="flex-1 rounded-xl py-2 text-sm font-semibold capitalize transition-all"
+                      style={{
+                        background: splitMode === mode ? 'var(--color-laterite)' : 'transparent',
+                        color: splitMode === mode ? '#fffdf8' : 'var(--color-mute)',
+                      }}
+                    >
+                      {mode}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Equal total */}
+              {splitMode === 'equal' && (
+                <div className="mb-4">
+                  <label className="mb-1.5 block text-sm" style={{ color: 'var(--color-mute)' }}>Total USDC</label>
+                  <div
+                    className="flex h-14 items-center gap-2 rounded-2xl border px-4"
+                    style={{ borderColor: 'rgba(27,24,19,0.15)', background: 'var(--color-ground)' }}
+                  >
+                    <input
+                      inputMode="decimal"
+                      value={equalTotal}
+                      onChange={e => { const v = e.target.value.replace(/[^0-9.]/g, ''); if (v === '' || /^\d*\.?\d*$/.test(v)) setEqualTotal(v) }}
+                      placeholder="0.00"
+                      className="flex-1 bg-transparent text-2xl font-bold tabular-nums outline-none placeholder:opacity-30"
+                      style={{ color: 'var(--color-ink)', fontFamily: 'ui-monospace, Menlo, monospace' }}
+                    />
+                    <span className="text-sm font-medium" style={{ color: 'var(--color-mute)' }}>USDC</span>
+                  </div>
+                  {equalTotal && filledAddresses > 0 && (
+                    <p className="mt-1 text-xs" style={{ color: 'var(--color-mute)' }}>
+                      {(parseFloat(equalTotal) / filledAddresses).toFixed(6)} USDC per recipient
+                    </p>
+                  )}
+                </div>
+              )}
+
+              {/* Recipients */}
+              <div className="mb-5">
+                <label className="mb-1.5 block text-sm" style={{ color: 'var(--color-mute)' }}>Recipients</label>
+                <div className="space-y-2">
+                  {rows.map((row, idx) => (
+                    <div key={row.id} className={`grid gap-2 ${splitMode === 'custom' ? 'grid-cols-[1fr_8rem_2.25rem]' : 'grid-cols-[1fr_2.25rem]'}`}>
+                      <input
+                        value={row.address}
+                        onChange={e => updateRow(row.id, 'address', e.target.value)}
+                        placeholder={`0x recipient ${idx + 1}`}
+                        className="input-base input-mono text-sm"
+                      />
+                      {splitMode === 'custom' && (
+                        <input
+                          inputMode="decimal"
+                          value={row.amount}
+                          onChange={e => { const v = e.target.value.replace(/[^0-9.]/g, ''); if (v === '' || /^\d*\.?\d*$/.test(v)) updateRow(row.id, 'amount', v) }}
+                          placeholder="0.00"
+                          className="input-base input-mono text-right"
+                        />
+                      )}
+                      <button
+                        onClick={() => removeRow(row.id)}
+                        disabled={rows.length <= 1}
+                        className="flex size-12 items-center justify-center rounded-2xl transition-colors hover:bg-red-50 disabled:pointer-events-none disabled:opacity-30"
+                        style={{ border: '1px solid rgba(27,24,19,0.12)', background: 'var(--color-ground)' }}
+                      >
+                        <Trash2 className="size-3.5" style={{ color: 'var(--color-danger)' }} />
+                      </button>
+                    </div>
+                  ))}
+
+                  <button
+                    onClick={addRow}
+                    className="btn-ghost w-full gap-2 text-sm"
+                  >
+                    <Plus className="size-4" />
+                    Add recipient
+                  </button>
+                </div>
+              </div>
+
+              {/* In-flight status */}
+              {(isPending || isConfirming) && (
+                <div
+                  className="mb-4 flex items-center gap-3 rounded-2xl px-4 py-3 text-sm"
+                  style={{ background: 'rgba(0,122,102,0.08)', color: 'var(--color-laterite)' }}
+                >
+                  <Loader2 className="size-4 shrink-0 animate-spin" />
+                  {isPending ? 'Check your wallet to confirm…' : 'Transaction confirming on Arc…'}
+                </div>
+              )}
+
+              {/* CTA */}
+              <button
+                onClick={handleCreate}
+                disabled={isPending || isConfirming}
+                className="btn-primary w-full"
+              >
+                {isPending || isConfirming
+                  ? <span className="flex items-center gap-2"><Loader2 className="size-4 animate-spin" />{isPending ? 'Waiting for wallet…' : 'Confirming…'}</span>
+                  : 'Create distribution'}
+              </button>
+            </div>
+          </motion.section>
+        </motion.div>
+      )}
     </AnimatePresence>
   )
 }

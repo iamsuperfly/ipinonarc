@@ -23,7 +23,6 @@ export default defineConfig({
       'wagmi/connectors',
       'viem',
       'viem/chains',
-      'connectkit',
       'framer-motion',
       'lucide-react',
       'sonner',

@@ -23,14 +23,19 @@ export default function PotList({ refreshKey, onRefresh }: Props) {
   useEffect(() => {
     if (!address || !client) { setLoading(false); return }
 
-    setLoading(true)
+    // Only show spinner on the very first load, not on every refresh
+    setPotIds(prev => { if (prev.length === 0) setLoading(true); return prev })
+
     void (async () => {
       try {
+        // Get current block and scan back up to 500k blocks (covers all testnet history cheaply)
+        const head = await client.getBlockNumber()
+        const fromBlock = head > 500_000n ? head - 500_000n : 0n
         const logs = await client.getLogs({
           address: IPIN_ADDRESS,
           event: POT_CREATED_EVENT,
           args: { owner: address },
-          fromBlock: 0n,
+          fromBlock,
           toBlock: 'latest',
         })
         // Newest first
@@ -40,7 +45,7 @@ export default function PotList({ refreshKey, onRefresh }: Props) {
           .reverse()
         setPotIds(ids)
       } catch {
-        setPotIds([])
+        // Keep existing ids on error so screen doesn't blank out
       } finally {
         setLoading(false)
       }

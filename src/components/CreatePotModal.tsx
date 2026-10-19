@@ -1,11 +1,17 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { useAccount, useWriteContract, useWaitForTransactionReceipt, useSwitchChain } from 'wagmi'
 import { AnimatePresence, motion } from 'framer-motion'
 import { X, Plus, Trash2, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { IPIN_CONTRACT, ARC_TESTNET_CHAIN_ID } from '../contract'
 import { parseOnchainError } from '../utils'
-import { parseAmount } from '@/onchain-money'
+
+/** Parse a human USDC string (e.g. "10.50") into 6-decimal bigint */
+function parseUsdc(value: string): bigint {
+  const [whole = '0', frac = ''] = value.split('.')
+  const padded = frac.padEnd(6, '0').slice(0, 6)
+  return BigInt(whole) * 1_000_000n + BigInt(padded)
+}
 
 interface RecipientRow {
   id: number
@@ -46,11 +52,17 @@ export default function CreatePotModal({ onClose, onCreated }: Props) {
     onClose()
   }, [onClose, reset])
 
-  if (isSuccess) {
+  // When tx confirms, notify parent and close — guarded by cleanup so it fires exactly once
+  useEffect(() => {
+    if (!isSuccess) return
+    let cancelled = false
+    // toast is fire-and-forget, safe outside render
     toast.success('Pot created!')
-    onCreated()
-    handleClose()
-  }
+    if (!cancelled) { onCreated(); onClose() }
+    return () => { cancelled = true }
+  // onCreated and onClose are stable refs from the parent — exhaustive-deps is correct here
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isSuccess])
 
   const handleCreate = () => {
     if (chainId !== ARC_TESTNET_CHAIN_ID) {
@@ -70,7 +82,7 @@ export default function CreatePotModal({ onClose, onCreated }: Props) {
       if (splitMode === 'custom') {
         const n = parseFloat(row.amount)
         if (isNaN(n) || n <= 0) { toast.error(`Invalid amount for ${addr}`); return }
-        amounts.push(parseAmount(ARC_TESTNET_CHAIN_ID, row.amount).raw)
+        amounts.push(parseUsdc(row.amount))
       }
     }
 
@@ -80,7 +92,7 @@ export default function CreatePotModal({ onClose, onCreated }: Props) {
       const total = parseFloat(equalTotal)
       if (isNaN(total) || total <= 0) { toast.error('Enter a valid total USDC amount.'); return }
       const perPerson = total / addresses.length
-      const perPersonRaw = parseAmount(ARC_TESTNET_CHAIN_ID, perPerson.toFixed(6)).raw
+      const perPersonRaw = parseUsdc(perPerson.toFixed(6))
       for (let i = 0; i < addresses.length; i++) amounts.push(perPersonRaw)
     }
 

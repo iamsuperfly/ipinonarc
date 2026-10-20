@@ -141,6 +141,12 @@ export default function CreatePotModal({ open, onClose, onCreated }: Props) {
       ...IPIN_CONTRACT,
       functionName: 'createPot',
       args: [name.trim(), addresses as `0x${string}`[], amounts],
+      // Skip wagmi's internal simulateContract call — on Rabby mobile (and other
+      // injected wallets on custom chains), simulation routes through the wallet's
+      // own RPC which can fail/timeout on unknown chains like Arc Testnet, leaving
+      // the wallet popup blank with no Sign button. __mode: 'prepared' sends the
+      // tx directly to the wallet for signing without pre-simulation.
+      __mode: 'prepared',
     })
   }
 

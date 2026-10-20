@@ -69,7 +69,7 @@ export default function FundSheet({ open, potId, totalAllocated, fundedAmount, o
   const handleApprove = () => {
     if (!ensureChain()) return
     try {
-      approve({ address: USDC_ADDRESS, abi: erc20Abi, functionName: 'approve', args: [IPIN_CONTRACT.address, parsedAmount] })
+      approve({ address: USDC_ADDRESS, abi: erc20Abi, functionName: 'approve', args: [IPIN_CONTRACT.address, parsedAmount], __mode: 'prepared' })
     } catch (e) { toast.error(parseOnchainError(e)) }
   }
 
@@ -77,7 +77,7 @@ export default function FundSheet({ open, potId, totalAllocated, fundedAmount, o
     if (!ensureChain()) return
     if (parsedAmount === 0n) { toast.error('Enter an amount.'); return }
     try {
-      fund({ ...IPIN_CONTRACT, functionName: 'fund', args: [potId, parsedAmount] })
+      fund({ ...IPIN_CONTRACT, functionName: 'fund', args: [potId, parsedAmount], __mode: 'prepared' })
     } catch (e) { toast.error(parseOnchainError(e)) }
   }
 

@@ -74,7 +74,7 @@ export default function PotCard({ potId, onRefresh }: Props) {
     if (paySuccess) {
       payReset()
       // auto-close
-      writeClose({ ...IPIN_CONTRACT, functionName: 'closePot', args: [potId] })
+      writeClose({ ...IPIN_CONTRACT, functionName: 'closePot', args: [potId], __mode: 'prepared' })
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [paySuccess])
@@ -121,7 +121,7 @@ export default function PotCard({ potId, onRefresh }: Props) {
     if (!ensureChain()) return
     if (!isFunded) { toast.error('Fund the pot to 100% before paying.'); return }
     try {
-      writePayAll({ ...IPIN_CONTRACT, functionName: 'payAll', args: [potId] })
+      writePayAll({ ...IPIN_CONTRACT, functionName: 'payAll', args: [potId], __mode: 'prepared' })
     } catch (e) { toast.error(parseOnchainError(e)) }
   }
 

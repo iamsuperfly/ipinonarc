@@ -4,12 +4,14 @@ import { erc20Abi } from 'viem'
 import { AnimatePresence, motion } from 'framer-motion'
 import { X, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
-import { IPIN_CONTRACT, ARC_TESTNET_CHAIN_ID } from '../contract'
+import { IPIN_CONTRACT, ARC_TESTNET_CHAIN_ID, USDC_ADDRESS } from '../contract'
 import { formatUsdc, parseOnchainError } from '../utils'
-import { parseAmount } from '@/onchain-money'
-import { getUsdc } from '@/onchain-facts'
 
-const USDC_ADDRESS = getUsdc(ARC_TESTNET_CHAIN_ID)!.address as `0x${string}`
+function parseUsdc(value: string): bigint {
+  const [whole = '0', frac = ''] = value.split('.')
+  const padded = frac.padEnd(6, '0').slice(0, 6)
+  return BigInt(whole) * 1_000_000n + BigInt(padded)
+}
 
 interface Props {
   open: boolean
@@ -58,7 +60,7 @@ export default function FundSheet({ open, potId, totalAllocated, fundedAmount, o
   if (approveSuccess) { void refetchAllowance(); toast.success('USDC approved.') }
   if (fundSuccess) { toast.success('Pot funded!'); onFunded(); resetFund(); setAmount('') }
 
-  const parsedAmount = amount ? parseAmount(ARC_TESTNET_CHAIN_ID, amount).raw : 0n
+  const parsedAmount = amount ? parseUsdc(amount) : 0n
   const needsApproval = parsedAmount > 0n && (allowance ?? 0n) < parsedAmount
 
   const ensureChain = () => {

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt, useSwitchChain } from 'wagmi'
 import { erc20Abi } from 'viem'
 import { AnimatePresence, motion } from 'framer-motion'
@@ -57,8 +57,22 @@ export default function FundSheet({ open, potId, totalAllocated, fundedAmount, o
   const { writeContract: fund, data: fundHash, isPending: fundPending, reset: resetFund } = useWriteContract()
   const { isLoading: fundConfirming, isSuccess: fundSuccess } = useWaitForTransactionReceipt({ hash: fundHash })
 
-  if (approveSuccess) { void refetchAllowance(); toast.success('USDC approved.') }
-  if (fundSuccess) { toast.success('Pot funded!'); onFunded(); resetFund(); setAmount('') }
+  // Fire side effects exactly once when each tx confirms — never during render
+  useEffect(() => {
+    if (!approveSuccess) return
+    void refetchAllowance()
+    toast.success('USDC approved.')
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [approveSuccess])
+
+  useEffect(() => {
+    if (!fundSuccess) return
+    toast.success('Pot funded!')
+    onFunded()
+    resetFund()
+    setAmount('')
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fundSuccess])
 
   const parsedAmount = amount ? parseUsdc(amount) : 0n
   const needsApproval = parsedAmount > 0n && (allowance ?? 0n) < parsedAmount
@@ -85,13 +99,16 @@ export default function FundSheet({ open, potId, totalAllocated, fundedAmount, o
 
   const isWorking = approvePending || approveConfirming || fundPending || fundConfirming
 
+  // Don't allow closing while a tx is in flight
+  const handleClose = () => { if (!isWorking) onClose() }
+
   return (
     <AnimatePresence>
       {open && (
         <motion.div
           className="fixed inset-0 z-50 flex items-end justify-center"
           initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-          onClick={onClose}
+          onClick={handleClose}
         >
           <div className="absolute inset-0" style={{ background: 'rgba(27,24,19,0.45)', backdropFilter: 'blur(4px)' }} />
           <motion.section
@@ -110,8 +127,9 @@ export default function FundSheet({ open, potId, totalAllocated, fundedAmount, o
               <div className="mb-5 flex items-center justify-between">
                 <h2 className="text-2xl font-bold">Fund pot</h2>
                 <button
-                  onClick={onClose}
-                  className="flex size-9 items-center justify-center rounded-full"
+                  onClick={handleClose}
+                  disabled={isWorking}
+                  className="flex size-9 items-center justify-center rounded-full disabled:opacity-40"
                   style={{ border: '1px solid rgba(27,24,19,0.15)', background: 'var(--color-ground)' }}
                 >
                   <X className="size-4" />
@@ -155,7 +173,7 @@ export default function FundSheet({ open, potId, totalAllocated, fundedAmount, o
                 <div className="mt-2 flex items-center justify-between px-1">
                   {still > 0n && (
                     <button
-                      onClick={() => setAmount((Number(still) / 1e6).toFixed(6))}
+                      onClick={() => setAmount(`${still / 1_000_000n}.${String(still % 1_000_000n).padStart(6, '0')}`)}
                       className="text-xs font-semibold"
                       style={{ color: 'var(--color-laterite)' }}
                     >
@@ -164,7 +182,7 @@ export default function FundSheet({ open, potId, totalAllocated, fundedAmount, o
                   )}
                   <button
                     disabled={!balance}
-                    onClick={() => setAmount((Number(balance) / 1e6).toFixed(6))}
+                    onClick={() => setAmount(`${balance / 1_000_000n}.${String(balance % 1_000_000n).padStart(6, '0')}`)}
                     className="ml-auto text-xs disabled:opacity-40"
                     style={{ color: 'var(--color-mute)' }}
                   >

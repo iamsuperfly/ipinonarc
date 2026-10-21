@@ -3,42 +3,51 @@ import { useAccount, usePublicClient } from 'wagmi'
 import { Loader2, RefreshCw } from 'lucide-react'
 import { parseAbiItem } from 'viem'
 import { IPIN_ADDRESS, IPIN_DEPLOY_BLOCK, ARC_TESTNET_CHAIN_ID } from '../contract'
-import { fetchPotIds } from '../supabase'
+import { fetchPots } from '../supabase'
 import PotCard from './PotCard'
 
 interface Props {
   refreshKey: number
   onRefresh: () => void
+  onCreatePot: () => void
 }
 
 const POT_CREATED_EVENT = parseAbiItem(
   'event PotCreated(uint256 indexed potId, address indexed owner, string name, uint256 totalAllocated)'
 )
 
-export default function PotList({ refreshKey, onRefresh }: Props) {
+export default function PotList({ refreshKey, onRefresh, onCreatePot }: Props) {
   const { address } = useAccount()
   const client = usePublicClient({ chainId: ARC_TESTNET_CHAIN_ID })
   const [potIds, setPotIds] = useState<bigint[]>([])
-  const [loading, setLoading] = useState(true)
+  const [createdAtMap, setCreatedAtMap] = useState<Record<string, string>>({})
+  const [initialLoading, setInitialLoading] = useState(true)
+  const [refreshing, setRefreshing] = useState(false)
 
   useEffect(() => {
-    if (!address) { setLoading(false); return }
+    if (!address) { setInitialLoading(false); return }
+
+    // Only show full-page spinner on the very first load
+    const isFirstLoad = potIds.length === 0
+    if (isFirstLoad) setInitialLoading(true)
+    else setRefreshing(true)
 
     void (async () => {
-      // Primary: query Supabase — instant, no RPC calls, cross-device
-      const ids = await fetchPotIds(address, ARC_TESTNET_CHAIN_ID)
-
-      if (ids.length > 0) {
-        setPotIds(ids)
-        setLoading(false)
-        return
-      }
-
-      // Fallback: scan RPC logs in 9999-block batches if Supabase has nothing
-      // (e.g. pots created before Supabase was wired up)
-      if (!client) { setLoading(false); return }
-
       try {
+        // Primary: Supabase — instant, no RPC, cross-device
+        const rows = await fetchPots(address, ARC_TESTNET_CHAIN_ID)
+
+        if (rows.length > 0) {
+          setPotIds(rows.map(r => BigInt(r.pot_id)))
+          const map: Record<string, string> = {}
+          for (const r of rows) map[String(r.pot_id)] = r.created_at
+          setCreatedAtMap(map)
+          return
+        }
+
+        // Fallback: scan RPC logs in 9999-block batches
+        if (!client) return
+
         const head = await client.getBlockNumber()
         const BATCH = 9999n
         const allIds: bigint[] = []
@@ -58,7 +67,7 @@ export default function PotList({ refreshKey, onRefresh }: Props) {
               if (id) allIds.push(id)
             }
           } catch {
-            // Skip failed batch, continue
+            // Skip failed batch
           }
         }
 
@@ -66,13 +75,15 @@ export default function PotList({ refreshKey, onRefresh }: Props) {
       } catch {
         // Keep existing ids on error
       } finally {
-        setLoading(false)
+        setInitialLoading(false)
+        setRefreshing(false)
       }
     })()
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [address, refreshKey])
 
-  if (loading) {
+  // Full-page spinner on first load only
+  if (initialLoading) {
     return (
       <div className="flex justify-center py-20">
         <Loader2 className="size-6 animate-spin" style={{ color: 'var(--color-mute)' }} />
@@ -80,31 +91,28 @@ export default function PotList({ refreshKey, onRefresh }: Props) {
     )
   }
 
-  if (!address) {
-    return (
-      <div
-        className="rise-in rounded-3xl border p-10 text-center"
-        style={{ borderColor: 'rgba(27,24,19,0.10)', background: 'var(--color-panel)' }}
-      >
-        <h3 className="text-xl font-bold">Connect your wallet</h3>
-        <p className="mx-auto mt-2 max-w-xs text-sm" style={{ color: 'var(--color-mute)' }}>
-          Connect to see your pots.
-        </p>
-      </div>
-    )
-  }
-
   if (potIds.length === 0) {
     return (
       <div
-        className="rise-in rounded-3xl border p-10 text-center"
+        className="rise-in rounded-3xl border p-12 text-center"
         style={{ borderColor: 'rgba(27,24,19,0.10)', background: 'var(--color-panel)' }}
       >
-        <p className="text-4xl font-bold" style={{ color: 'var(--color-laterite)' }}>IP</p>
-        <h3 className="mt-4 text-xl font-bold">No pots yet</h3>
+        <div
+          className="mx-auto mb-5 flex size-16 items-center justify-center rounded-3xl text-2xl font-bold"
+          style={{ background: 'rgba(0,122,102,0.08)', color: 'var(--color-laterite)' }}
+        >
+          IP
+        </div>
+        <h3 className="text-xl font-bold">No pots yet</h3>
         <p className="mx-auto mt-2 max-w-xs text-sm" style={{ color: 'var(--color-mute)' }}>
-          Create a pot, fund it with USDC, and pay all recipients in one transaction.
+          Create your first pot, fund it with USDC, and pay all recipients in one transaction.
         </p>
+        <button
+          onClick={onCreatePot}
+          className="btn-primary mx-auto mt-6 px-8"
+        >
+          Create your first pot
+        </button>
       </div>
     )
   }
@@ -117,11 +125,12 @@ export default function PotList({ refreshKey, onRefresh }: Props) {
         </p>
         <button
           onClick={onRefresh}
-          className="flex items-center gap-1.5 text-xs"
+          disabled={refreshing}
+          className="flex items-center gap-1.5 text-xs disabled:opacity-40"
           style={{ color: 'var(--color-mute)' }}
         >
-          <RefreshCw className="size-3" />
-          Refresh
+          <RefreshCw className={`size-3 ${refreshing ? 'animate-spin' : ''}`} />
+          {refreshing ? 'Refreshing…' : 'Refresh'}
         </button>
       </div>
       <div className="flex flex-col gap-4">
@@ -129,6 +138,7 @@ export default function PotList({ refreshKey, onRefresh }: Props) {
           <PotCard
             key={id.toString()}
             potId={id}
+            createdAt={createdAtMap[id.toString()]}
             onRefresh={onRefresh}
           />
         ))}

@@ -22,10 +22,24 @@ interface RecipientData {
 interface Props {
   potId: bigint
   onRefresh: () => void
+  createdAt?: string
+}
+
+function timeAgo(iso: string): string {
+  const diff = Date.now() - new Date(iso).getTime()
+  const mins = Math.floor(diff / 60_000)
+  if (mins < 1) return 'just now'
+  if (mins < 60) return `${mins}m ago`
+  const hrs = Math.floor(mins / 60)
+  if (hrs < 24) return `${hrs}h ago`
+  const days = Math.floor(hrs / 24)
+  if (days < 30) return `${days}d ago`
+  const months = Math.floor(days / 30)
+  return `${months}mo ago`
 }
 
 // Distinct wagmi write instances so their states don't collide
-export default function PotCard({ potId, onRefresh }: Props) {
+export default function PotCard({ potId, onRefresh, createdAt }: Props) {
   const { address: walletAddress, chainId } = useAccount()
   const { switchChain } = useSwitchChain()
   const [expanded, setExpanded] = useState(false)
@@ -157,7 +171,14 @@ export default function PotCard({ potId, onRefresh }: Props) {
 
           {/* Header */}
           <div className="mb-4 flex items-start justify-between gap-3">
-            <h3 className="truncate text-lg font-bold leading-tight">{name}</h3>
+            <div className="min-w-0">
+              <h3 className="truncate text-lg font-bold leading-tight">{name}</h3>
+              {createdAt && (
+                <p className="mt-0.5 text-xs" style={{ color: 'var(--color-mute)' }}>
+                  {timeAgo(createdAt)}
+                </p>
+              )}
+            </div>
             <span className="shrink-0 rounded-full px-3 py-1 text-xs font-semibold" style={statusStyle}>
               {statusLabel}
             </span>

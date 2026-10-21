@@ -42,19 +42,22 @@ export async function savePot(data: {
 
 /** Fetch all pot IDs for a wallet address, newest first. */
 export async function fetchPotIds(owner: string, chainId: number): Promise<bigint[]> {
+  const rows = await fetchPots(owner, chainId)
+  return rows.map(r => BigInt(r.pot_id))
+}
+
+/** Fetch full pot rows (including created_at) for a wallet address, newest first. */
+export async function fetchPots(owner: string, chainId: number): Promise<PotRow[]> {
   const { data, error } = await supabase
     .from('pots')
-    .select('pot_id')
+    .select('*')
     .eq('chain_id', chainId)
     .ilike('owner', owner.toLowerCase())
     .order('created_at', { ascending: false })
 
   if (error) {
-    console.error('Supabase fetchPotIds error:', error.message)
+    console.error('Supabase fetchPots error:', error.message)
     return []
   }
-  return (data ?? []).map(r => {
-    const potId = Number((r as Record<string, unknown>)['pot_id'])
-    return BigInt(potId)
-  })
+  return (data ?? []) as PotRow[]
 }

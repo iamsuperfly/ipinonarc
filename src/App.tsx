@@ -84,15 +84,24 @@ export default function App() {
         ) : (
           /* ── Dashboard ── */
           <section>
-            <div className="mb-8">
-              <h1 className="text-3xl font-bold">Your pots</h1>
-              <p className="mt-1 text-sm" style={{ color: 'var(--color-mute)' }}>
-                Only your pots are shown. Create one, fund it, then pay everyone at once.
-              </p>
+            <div className="mb-8 flex items-end justify-between gap-4">
+              <div>
+                <h1 className="text-3xl font-bold">Your pots</h1>
+                <p className="mt-1 text-sm" style={{ color: 'var(--color-mute)' }}>
+                  Only your pots are shown. Create one, fund it, then pay everyone at once.
+                </p>
+              </div>
+              <button
+                onClick={() => setShowCreate(true)}
+                className="btn-primary hidden h-11 shrink-0 gap-1.5 px-5 text-sm sm:flex"
+              >
+                + New pot
+              </button>
             </div>
             <PotList
               refreshKey={refreshKey}
               onRefresh={() => setRefreshKey(k => k + 1)}
+              onCreatePot={() => setShowCreate(true)}
             />
           </section>
         )}

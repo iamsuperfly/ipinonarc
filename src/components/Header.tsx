@@ -52,7 +52,7 @@ export default function Header() {
 
   return (
     <header
-      className="sticky top-0 z-40 border-b bg-[#f7f6f2]/95 backdrop-blur-md"
+      className="sticky top-0 z-40 border-b bg-[#f7f6f2]/95 backdrop-blur-md relative"
       style={{ borderColor: 'rgba(27,24,19,0.10)' }}
     >
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
@@ -159,75 +159,79 @@ export default function Header() {
         </div>
       </div>
 
-      {/* Mobile drawer */}
+      {/* Mobile dropdown — floats over content, anchored top-right */}
       {mobileOpen && isConnected && address && (
-        <div
-          className="flex flex-col border-t sm:hidden"
-          style={{ borderColor: 'rgba(27,24,19,0.10)', background: '#f7f6f2' }}
-        >
-          {/* Balance row */}
+        <>
+          {/* invisible backdrop to close on outside tap */}
+          <div className="fixed inset-0 z-30 sm:hidden" onClick={closeMobile} />
           <div
-            className="flex items-center justify-between px-5 py-3 border-b"
-            style={{ borderColor: 'rgba(27,24,19,0.08)' }}
+            className="absolute right-4 top-[4.25rem] z-40 w-64 overflow-hidden rounded-2xl border shadow-xl sm:hidden"
+            style={{ background: 'var(--color-panel)', borderColor: 'rgba(27,24,19,0.12)' }}
           >
-            <span className="text-sm" style={{ color: 'var(--color-mute)' }}>Balance</span>
-            <span className="font-mono text-sm font-semibold tabular-nums" style={{ color: 'var(--color-laterite)' }}>
-              {formatUsdc(balance)} USDC
-            </span>
-          </div>
-
-          {/* Wallet address + copy */}
-          <div
-            className="flex items-center justify-between px-5 py-3 border-b"
-            style={{ borderColor: 'rgba(27,24,19,0.08)' }}
-          >
-            <span className="font-mono text-xs" style={{ color: 'var(--color-mute)' }}>{shortAddr(address)}</span>
-            <button
-              onClick={handleCopy}
-              className="flex items-center gap-1 rounded-lg px-2 py-1 text-xs"
-              style={{ color: copied ? 'var(--color-laterite)' : 'var(--color-mute)' }}
+            {/* Balance */}
+            <div
+              className="flex items-center justify-between px-4 py-3 border-b"
+              style={{ borderColor: 'rgba(27,24,19,0.08)' }}
             >
-              {copied ? <Check className="size-3" /> : <Copy className="size-3" />}
-              {copied ? 'Copied' : 'Copy'}
+              <span className="text-xs" style={{ color: 'var(--color-mute)' }}>Balance</span>
+              <span className="font-mono text-xs font-semibold tabular-nums" style={{ color: 'var(--color-laterite)' }}>
+                {formatUsdc(balance)} USDC
+              </span>
+            </div>
+
+            {/* Wallet address + copy */}
+            <div
+              className="flex items-center justify-between px-4 py-3 border-b"
+              style={{ borderColor: 'rgba(27,24,19,0.08)' }}
+            >
+              <span className="font-mono text-xs" style={{ color: 'var(--color-mute)' }}>{shortAddr(address)}</span>
+              <button
+                onClick={handleCopy}
+                className="flex items-center gap-1 rounded-lg px-2 py-1 text-xs"
+                style={{ color: copied ? 'var(--color-laterite)' : 'var(--color-mute)' }}
+              >
+                {copied ? <Check className="size-3" /> : <Copy className="size-3" />}
+                {copied ? 'Copied' : 'Copy'}
+              </button>
+            </div>
+
+            {/* Nav links */}
+            <NavLink
+              to="/pots"
+              onClick={closeMobile}
+              className="flex items-center gap-3 px-4 py-3.5 text-sm font-semibold border-b transition-colors hover:bg-black/5"
+              style={({ isActive }) => ({
+                borderColor: 'rgba(27,24,19,0.08)',
+                color: isActive ? 'var(--color-laterite)' : 'var(--color-ink)',
+              })}
+            >
+              <Layers className="size-4" />
+              Pots
+            </NavLink>
+            <NavLink
+              to="/profile"
+              onClick={closeMobile}
+              className="flex items-center gap-3 px-4 py-3.5 text-sm font-semibold border-b transition-colors hover:bg-black/5"
+              style={({ isActive }) => ({
+                borderColor: 'rgba(27,24,19,0.08)',
+                color: isActive ? 'var(--color-laterite)' : 'var(--color-ink)',
+              })}
+            >
+              <User className="size-4" />
+              Profile
+            </NavLink>
+
+            {/* Disconnect */}
+            <button
+              onClick={() => { disconnect(); closeMobile(); void navigate('/') }}
+              className="flex w-full items-center gap-3 px-4 py-3.5 text-sm font-semibold transition-colors hover:bg-black/5"
+              style={{ color: 'var(--color-danger)' }}
+            >
+              <LogOut className="size-4" />
+              Disconnect
             </button>
           </div>
-
-          {/* Nav links */}
-          <NavLink
-            to="/pots"
-            onClick={closeMobile}
-            className="flex items-center gap-3 px-5 py-4 text-sm font-semibold border-b"
-            style={({ isActive }) => ({
-              borderColor: 'rgba(27,24,19,0.08)',
-              color: isActive ? 'var(--color-laterite)' : 'var(--color-ink)',
-            })}
-          >
-            <Layers className="size-4" />
-            Pots
-          </NavLink>
-          <NavLink
-            to="/profile"
-            onClick={closeMobile}
-            className="flex items-center gap-3 px-5 py-4 text-sm font-semibold border-b"
-            style={({ isActive }) => ({
-              borderColor: 'rgba(27,24,19,0.08)',
-              color: isActive ? 'var(--color-laterite)' : 'var(--color-ink)',
-            })}
-          >
-            <User className="size-4" />
-            Profile
-          </NavLink>
-
-          {/* Disconnect */}
-          <button
-            onClick={() => { disconnect(); closeMobile(); void navigate('/') }}
-            className="flex items-center gap-3 px-5 py-4 text-sm font-semibold"
-            style={{ color: 'var(--color-danger)' }}
-          >
-            <LogOut className="size-4" />
-            Disconnect
-          </button>
-        </div>
+        </>
       )}
     </header>
   )

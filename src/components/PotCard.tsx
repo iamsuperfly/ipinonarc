@@ -63,7 +63,7 @@ export default function PotCard({ potId, onRefresh, createdAt }: Props) {
 
   const refetch = () => { void refetchPot(); void refetchRecipients(); onRefresh() }
 
-  // ── payBestEffort write ────────────────────────────────────────────────
+  // ── payAll write (primary) ────────────────────────────────────────────
   const {
     writeContract: writePayAll,
     data: payHash,
@@ -72,6 +72,16 @@ export default function PotCard({ potId, onRefresh, createdAt }: Props) {
   } = useWriteContract()
   const { isLoading: payConfirming, isSuccess: paySuccess } =
     useWaitForTransactionReceipt({ hash: payHash })
+
+  // ── payBestEffort write (fallback) ────────────────────────────────────
+  const {
+    writeContract: writeBestEffort,
+    data: bestEffortHash,
+    isPending: bestEffortPending,
+    reset: bestEffortReset,
+  } = useWriteContract()
+  const { isLoading: bestEffortConfirming, isSuccess: bestEffortSuccess } =
+    useWaitForTransactionReceipt({ hash: bestEffortHash })
 
   // ── closePot write (auto-triggered after payAll) ───────────────────────
   const {
@@ -83,15 +93,23 @@ export default function PotCard({ potId, onRefresh, createdAt }: Props) {
   const { isLoading: closeConfirming, isSuccess: closeSuccess } =
     useWaitForTransactionReceipt({ hash: closeHash })
 
-  // After payAll confirms → immediately close the pot (no extra step for user)
+  // After payAll confirms → immediately close the pot
   useEffect(() => {
     if (paySuccess) {
       payReset()
-      // auto-close
       writeClose({ ...IPIN_CONTRACT, functionName: 'closePot', args: [potId], __mode: 'prepared' })
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [paySuccess])
+
+  // After payBestEffort confirms → also auto-close
+  useEffect(() => {
+    if (bestEffortSuccess) {
+      bestEffortReset()
+      writeClose({ ...IPIN_CONTRACT, functionName: 'closePot', args: [potId], __mode: 'prepared' })
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [bestEffortSuccess])
 
   useEffect(() => {
     if (closeSuccess) {
@@ -124,7 +142,7 @@ export default function PotCard({ potId, onRefresh, createdAt }: Props) {
   const paidCount = recipients.filter(r => r.paid).length
   const failedCount = recipients.filter(r => r.failed).length
   const progress = totalAllocated > 0n ? Number((fundedAmount * 100n) / totalAllocated) : 0
-  const isWorking = payPending || payConfirming || closePending || closeConfirming
+  const isWorking = payPending || payConfirming || bestEffortPending || bestEffortConfirming || closePending || closeConfirming
 
   const ensureChain = () => {
     if (chainId !== ARC_TESTNET_CHAIN_ID) { switchChain({ chainId: ARC_TESTNET_CHAIN_ID }); return false }
@@ -135,7 +153,14 @@ export default function PotCard({ potId, onRefresh, createdAt }: Props) {
     if (!ensureChain()) return
     if (fundedAmount === 0n) { toast.error('Fund the pot before paying.'); return }
     try {
-      writePayAll({ ...IPIN_CONTRACT, functionName: 'payBestEffort', args: [potId], __mode: 'prepared' })
+      writePayAll({ ...IPIN_CONTRACT, functionName: 'payAll', args: [potId], __mode: 'prepared' })
+    } catch (e) { toast.error(parseOnchainError(e)) }
+  }
+
+  const handlePayAnyway = () => {
+    if (!ensureChain()) return
+    try {
+      writeBestEffort({ ...IPIN_CONTRACT, functionName: 'payBestEffort', args: [potId], __mode: 'prepared' })
     } catch (e) { toast.error(parseOnchainError(e)) }
   }
 
@@ -147,11 +172,10 @@ export default function PotCard({ potId, onRefresh, createdAt }: Props) {
     ? { background: 'rgba(47,111,107,0.10)', color: 'var(--color-river)' }
     : { background: 'rgba(27,24,19,0.06)', color: 'var(--color-mute)' }
 
-  // Working label for Pay All button
-  const payLabel = payPending
+  const payLabel = payPending || bestEffortPending
     ? 'Confirm in wallet…'
-    : payConfirming
-    ? 'Paying everyone…'
+    : payConfirming || bestEffortConfirming
+    ? 'Paying…'
     : closePending
     ? 'Closing pot…'
     : closeConfirming
@@ -236,7 +260,7 @@ export default function PotCard({ potId, onRefresh, createdAt }: Props) {
                 {isFunded ? 'Add more funds' : 'Fund'}
               </button>
 
-              {/* Pay unlocks when any funds are in the pot */}
+              {/* Pay (payAll) — primary, unlocks when funded */}
               {fundedAmount > 0n && !allPaid && (
                 <button
                   onClick={handlePayAll}
@@ -245,6 +269,18 @@ export default function PotCard({ potId, onRefresh, createdAt }: Props) {
                 >
                   {isWorking && <Loader2 className="size-3.5 animate-spin" />}
                   {payLabel}
+                </button>
+              )}
+
+              {/* Pay anyway (payBestEffort) — fallback, only when there are failed recipients */}
+              {failedCount > 0 && !closed && (
+                <button
+                  onClick={handlePayAnyway}
+                  disabled={isWorking}
+                  className="btn-ghost h-11 px-4 text-sm"
+                  style={{ color: 'var(--color-danger)' }}
+                >
+                  Pay anyway ({failedCount} failed)
                 </button>
               )}
 

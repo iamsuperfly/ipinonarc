@@ -21,6 +21,17 @@ contract IPINDistributor is ReentrancyGuard {
     address public immutable usdc;
 
     // ─────────────────────────────────────────────
+    // Ownership and fees
+    // ─────────────────────────────────────────────
+
+    address public owner;
+    address public feeRecipient;
+
+    uint256 public constant FEE_BPS = 25;
+    uint256 public constant FEE_BPS_DENOMINATOR = 10_000;
+    uint256 public constant FEE_CAP = 20_000_000;
+
+    // ─────────────────────────────────────────────
     // Data structures
     // ─────────────────────────────────────────────
 
@@ -36,9 +47,9 @@ contract IPINDistributor is ReentrancyGuard {
         address owner;
         Recipient[] recipients;
         uint256 totalAllocated; // sum of all recipient amounts
-        uint256 fundedAmount;   // USDC deposited (balance-delta accounted)
-        uint256 paidOut;        // sum of successful payouts so far
-        bool closed;            // set by closePot(); enables withdraw()
+        uint256 fundedAmount; // USDC deposited (balance-delta accounted)
+        uint256 paidOut; // sum of successful payouts so far
+        bool closed; // set by closePot(); enables withdraw()
     }
 
     // ─────────────────────────────────────────────
@@ -68,6 +79,9 @@ contract IPINDistributor is ReentrancyGuard {
     event PotSealed(uint256 indexed potId);
     event PotWithdrawn(uint256 indexed potId, address indexed to, uint256 amount);
     event RecipientRetried(uint256 indexed potId, address indexed recipient, bool succeeded);
+    event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
+    event FeeRecipientUpdated(address indexed previous, address indexed next);
+    event FeeCharged(uint256 indexed potId, uint256 fee);
 
     // ─────────────────────────────────────────────
     // Storage
@@ -77,17 +91,65 @@ contract IPINDistributor is ReentrancyGuard {
     mapping(uint256 => Pot) private _pots;
 
     // ─────────────────────────────────────────────
+    // Modifiers
+    // ─────────────────────────────────────────────
+
+    modifier onlyOwner() {
+        if (msg.sender != owner) revert Unauthorized();
+        _;
+    }
+
+    // ─────────────────────────────────────────────
     // Constructor
     // ─────────────────────────────────────────────
 
     /// @param _usdc USDC token address for this deployment.
     ///              Arc Testnet: 0x3600000000000000000000000000000000000000
     ///              Arc Mainnet: set at mainnet deploy time.
-    constructor(address _usdc) {
+    constructor(address _usdc, address _owner, address _feeRecipient) {
         if (_usdc == address(0)) revert ZeroAddress();
+        if (_owner == address(0)) revert ZeroAddress();
+        if (_feeRecipient == address(0)) revert ZeroAddress();
         if (_usdc.code.length == 0) revert InvalidToken();
+
         usdc = _usdc;
+        owner = _owner;
+        feeRecipient = _feeRecipient;
         potCount = 1; // first valid pot id is 1
+
+        emit OwnershipTransferred(address(0), _owner);
+        emit FeeRecipientUpdated(address(0), _feeRecipient);
+    }
+
+    // ─────────────────────────────────────────────
+    // External — ownership and fees
+    // ─────────────────────────────────────────────
+
+    function transferOwnership(address newOwner) external onlyOwner {
+        if (newOwner == address(0)) revert ZeroAddress();
+
+        address previousOwner = owner;
+        owner = newOwner;
+
+        emit OwnershipTransferred(previousOwner, newOwner);
+    }
+
+    function setFeeRecipient(address newRecipient) external onlyOwner {
+        if (newRecipient == address(0)) revert ZeroAddress();
+
+        address previous = feeRecipient;
+        feeRecipient = newRecipient;
+
+        emit FeeRecipientUpdated(previous, newRecipient);
+    }
+
+    function calculateFee(uint256 amount) public pure returns (uint256) {
+        // Guard against overflow before multiplication; any amount this large
+        // will exceed the cap anyway, so return early.
+        if (amount > type(uint256).max / FEE_BPS) return FEE_CAP;
+        uint256 fee = (amount * FEE_BPS) / FEE_BPS_DENOMINATOR;
+        if (fee > FEE_CAP) return FEE_CAP;
+        return fee;
     }
 
     // ─────────────────────────────────────────────
@@ -141,13 +203,20 @@ contract IPINDistributor is ReentrancyGuard {
         if (pot.closed) revert PotClosed();
         if (amount == 0) revert ZeroAmount();
 
+        uint256 fee = calculateFee(amount);
+        uint256 totalPull = amount + fee;
+
         IERC20 token = IERC20(usdc);
         uint256 balanceBefore = token.balanceOf(address(this));
-        token.safeTransferFrom(msg.sender, address(this), amount);
+        token.safeTransferFrom(msg.sender, address(this), totalPull);
         uint256 received = token.balanceOf(address(this)) - balanceBefore;
+        if (received < totalPull) revert InsufficientFunds();
 
-        pot.fundedAmount += received;
-        emit PotFunded(potId, received, pot.fundedAmount);
+        token.safeTransfer(feeRecipient, fee);
+
+        pot.fundedAmount += amount;
+        emit FeeCharged(potId, fee);
+        emit PotFunded(potId, amount, pot.fundedAmount);
     }
 
     /// @notice Pay all unpaid recipients atomically. Reverts if any transfer fails.
@@ -272,7 +341,7 @@ contract IPINDistributor is ReentrancyGuard {
         view
         returns (
             string memory name,
-            address owner,
+            address potOwner,
             uint256 totalAllocated,
             uint256 fundedAmount,
             uint256 paidOut,

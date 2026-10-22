@@ -75,7 +75,19 @@ export default function FundSheet({ open, potId, totalAllocated, fundedAmount, o
   }, [fundSuccess])
 
   const parsedAmount = amount ? parseUsdc(amount) : 0n
-  const needsApproval = parsedAmount > 0n && (allowance ?? 0n) < parsedAmount
+
+  // Read fee from contract (0.25% capped at 20 USDC)
+  const { data: feeData } = useReadContract({
+    ...IPIN_CONTRACT,
+    functionName: 'calculateFee',
+    args: [parsedAmount],
+    chainId: ARC_TESTNET_CHAIN_ID,
+    query: { enabled: parsedAmount > 0n },
+  })
+  const fee = (feeData as bigint | undefined) ?? 0n
+  const totalCharged = parsedAmount + fee
+
+  const needsApproval = totalCharged > 0n && (allowance ?? 0n) < totalCharged
 
   const ensureChain = () => {
     if (chainId !== ARC_TESTNET_CHAIN_ID) { switchChain({ chainId: ARC_TESTNET_CHAIN_ID }); return false }
@@ -85,7 +97,8 @@ export default function FundSheet({ open, potId, totalAllocated, fundedAmount, o
   const handleApprove = () => {
     if (!ensureChain()) return
     try {
-      approve({ address: USDC_ADDRESS, abi: erc20Abi, functionName: 'approve', args: [IPIN_CONTRACT.address, parsedAmount], __mode: 'prepared' })
+      // Approve amount + fee so the contract can pull both
+      approve({ address: USDC_ADDRESS, abi: erc20Abi, functionName: 'approve', args: [IPIN_CONTRACT.address, totalCharged], __mode: 'prepared' })
     } catch (e) { toast.error(parseOnchainError(e)) }
   }
 
@@ -190,6 +203,27 @@ export default function FundSheet({ open, potId, totalAllocated, fundedAmount, o
                   </button>
                 </div>
               </div>
+
+              {/* Fee breakdown */}
+              {parsedAmount > 0n && (
+                <div
+                  className="mb-4 rounded-2xl px-4 py-3 text-sm space-y-1"
+                  style={{ background: 'var(--color-ground)', border: '1px solid rgba(27,24,19,0.08)' }}
+                >
+                  <div className="flex justify-between">
+                    <span style={{ color: 'var(--color-mute)' }}>To pot</span>
+                    <span className="font-mono font-semibold tabular-nums">{formatUsdc(parsedAmount)} USDC</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span style={{ color: 'var(--color-mute)' }}>Service fee (0.25%)</span>
+                    <span className="font-mono tabular-nums" style={{ color: 'var(--color-mute)' }}>{formatUsdc(fee)} USDC</span>
+                  </div>
+                  <div className="flex justify-between border-t pt-1" style={{ borderColor: 'rgba(27,24,19,0.08)' }}>
+                    <span className="font-semibold">Total charged</span>
+                    <span className="font-mono font-bold tabular-nums">{formatUsdc(totalCharged)} USDC</span>
+                  </div>
+                </div>
+              )}
 
               {/* CTA */}
               {needsApproval ? (

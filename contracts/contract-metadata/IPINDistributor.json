@@ -1,13 +1,20 @@
 {
-  "contractAddress": "0x57ccd9d1fe3dd6bea51c591e4f447c96ca985f1b",
+  "contractAddress": "0x73d690ee60aea5615dfc67d0d179abbdafa3257f",
   "network": "ARC-TESTNET",
   "deployerWalletId": "3c2464b2-8369-52e2-a782-800bbeca5396",
   "contract_code_path": "/home/user/app/contracts/IPINDistributor.sol",
   "contract_compiled_code_path": "/home/user/app/contracts/out/IPINDistributor.sol/IPINDistributor.json",
   "contract_network_and_links": {
-    "Arc Testnet": "https://explorer.testnet.arc.io/address/0x57ccd9d1fe3dd6bea51c591e4f447c96ca985f1b"
+    "Arc Testnet": "https://explorer.testnet.arc.io/address/0x73d690ee60aea5615dfc67d0d179abbdafa3257f"
   },
   "contract_deployments": [
+    {
+      "chain": "Arc Testnet",
+      "address": "0x73d690ee60aea5615dfc67d0d179abbdafa3257f",
+      "explorerUrl": "https://explorer.testnet.arc.io/address/0x73d690ee60aea5615dfc67d0d179abbdafa3257f",
+      "txHash": "0x94759db2008c5c679f22b91366d1eeed3671741a0151862bd81eb94a98bc880d",
+      "deployedAt": "2026-10-22T20:16:19.725Z"
+    },
     {
       "chain": "Arc Testnet",
       "address": "0x57ccd9d1fe3dd6bea51c591e4f447c96ca985f1b",
@@ -24,9 +31,77 @@
           "name": "_usdc",
           "type": "address",
           "internalType": "address"
+        },
+        {
+          "name": "_owner",
+          "type": "address",
+          "internalType": "address"
+        },
+        {
+          "name": "_feeRecipient",
+          "type": "address",
+          "internalType": "address"
         }
       ],
       "stateMutability": "nonpayable"
+    },
+    {
+      "type": "function",
+      "name": "FEE_BPS",
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "",
+          "type": "uint256",
+          "internalType": "uint256"
+        }
+      ],
+      "stateMutability": "view"
+    },
+    {
+      "type": "function",
+      "name": "FEE_BPS_DENOMINATOR",
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "",
+          "type": "uint256",
+          "internalType": "uint256"
+        }
+      ],
+      "stateMutability": "view"
+    },
+    {
+      "type": "function",
+      "name": "FEE_CAP",
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "",
+          "type": "uint256",
+          "internalType": "uint256"
+        }
+      ],
+      "stateMutability": "view"
+    },
+    {
+      "type": "function",
+      "name": "calculateFee",
+      "inputs": [
+        {
+          "name": "amount",
+          "type": "uint256",
+          "internalType": "uint256"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "",
+          "type": "uint256",
+          "internalType": "uint256"
+        }
+      ],
+      "stateMutability": "pure"
     },
     {
       "type": "function",
@@ -72,6 +147,19 @@
     },
     {
       "type": "function",
+      "name": "feeRecipient",
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "",
+          "type": "address",
+          "internalType": "address"
+        }
+      ],
+      "stateMutability": "view"
+    },
+    {
+      "type": "function",
       "name": "fund",
       "inputs": [
         {
@@ -105,7 +193,7 @@
           "internalType": "string"
         },
         {
-          "name": "owner",
+          "name": "potOwner",
           "type": "address",
           "internalType": "address"
         },
@@ -169,6 +257,19 @@
               "internalType": "bool"
             }
           ]
+        }
+      ],
+      "stateMutability": "view"
+    },
+    {
+      "type": "function",
+      "name": "owner",
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "",
+          "type": "address",
+          "internalType": "address"
         }
       ],
       "stateMutability": "view"
@@ -273,6 +374,32 @@
     },
     {
       "type": "function",
+      "name": "setFeeRecipient",
+      "inputs": [
+        {
+          "name": "newRecipient",
+          "type": "address",
+          "internalType": "address"
+        }
+      ],
+      "outputs": [],
+      "stateMutability": "nonpayable"
+    },
+    {
+      "type": "function",
+      "name": "transferOwnership",
+      "inputs": [
+        {
+          "name": "newOwner",
+          "type": "address",
+          "internalType": "address"
+        }
+      ],
+      "outputs": [],
+      "stateMutability": "nonpayable"
+    },
+    {
+      "type": "function",
       "name": "usdc",
       "inputs": [],
       "outputs": [
@@ -301,6 +428,63 @@
       ],
       "outputs": [],
       "stateMutability": "nonpayable"
+    },
+    {
+      "type": "event",
+      "name": "FeeCharged",
+      "inputs": [
+        {
+          "name": "potId",
+          "type": "uint256",
+          "indexed": true,
+          "internalType": "uint256"
+        },
+        {
+          "name": "fee",
+          "type": "uint256",
+          "indexed": false,
+          "internalType": "uint256"
+        }
+      ],
+      "anonymous": false
+    },
+    {
+      "type": "event",
+      "name": "FeeRecipientUpdated",
+      "inputs": [
+        {
+          "name": "previous",
+          "type": "address",
+          "indexed": true,
+          "internalType": "address"
+        },
+        {
+          "name": "next",
+          "type": "address",
+          "indexed": true,
+          "internalType": "address"
+        }
+      ],
+      "anonymous": false
+    },
+    {
+      "type": "event",
+      "name": "OwnershipTransferred",
+      "inputs": [
+        {
+          "name": "previousOwner",
+          "type": "address",
+          "indexed": true,
+          "internalType": "address"
+        },
+        {
+          "name": "newOwner",
+          "type": "address",
+          "indexed": true,
+          "internalType": "address"
+        }
+      ],
+      "anonymous": false
     },
     {
       "type": "event",

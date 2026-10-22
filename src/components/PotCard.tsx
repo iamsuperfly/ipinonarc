@@ -63,7 +63,7 @@ export default function PotCard({ potId, onRefresh, createdAt }: Props) {
 
   const refetch = () => { void refetchPot(); void refetchRecipients(); onRefresh() }
 
-  // ── payAll write ───────────────────────────────────────────────────────
+  // ── payBestEffort write ────────────────────────────────────────────────
   const {
     writeContract: writePayAll,
     data: payHash,
@@ -133,9 +133,9 @@ export default function PotCard({ potId, onRefresh, createdAt }: Props) {
 
   const handlePayAll = () => {
     if (!ensureChain()) return
-    if (!isFunded) { toast.error('Fund the pot to 100% before paying.'); return }
+    if (fundedAmount === 0n) { toast.error('Fund the pot before paying.'); return }
     try {
-      writePayAll({ ...IPIN_CONTRACT, functionName: 'payAll', args: [potId], __mode: 'prepared' })
+      writePayAll({ ...IPIN_CONTRACT, functionName: 'payBestEffort', args: [potId], __mode: 'prepared' })
     } catch (e) { toast.error(parseOnchainError(e)) }
   }
 
@@ -156,7 +156,7 @@ export default function PotCard({ potId, onRefresh, createdAt }: Props) {
     ? 'Closing pot…'
     : closeConfirming
     ? 'Confirming close…'
-    : 'Pay All'
+    : 'Pay'
 
   return (
     <>
@@ -236,8 +236,8 @@ export default function PotCard({ potId, onRefresh, createdAt }: Props) {
                 {isFunded ? 'Add more funds' : 'Fund'}
               </button>
 
-              {/* Pay All only unlocks when fully funded */}
-              {isFunded && !allPaid && (
+              {/* Pay unlocks when any funds are in the pot */}
+              {fundedAmount > 0n && !allPaid && (
                 <button
                   onClick={handlePayAll}
                   disabled={isWorking}

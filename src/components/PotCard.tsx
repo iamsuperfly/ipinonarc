@@ -8,9 +8,9 @@ import { formatAddress, formatUsdc, parseOnchainError } from '../utils'
 import FundSheet from './FundSheet'
 import WithdrawSheet from './WithdrawSheet'
 
-/** Build an Arc Testnet explorer URL for a transaction hash */
+/** Build an Arc Mainnet explorer URL for a transaction hash */
 function buildTxExplorerUrl(hash: string): string {
-  return `https://explorer.testnet.arc.io/tx/${hash}`
+  return `https://arc.etherscan.io/tx/${hash}`
 }
 
 interface RecipientData {

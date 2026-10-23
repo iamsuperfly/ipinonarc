@@ -89,7 +89,7 @@ export default function ProfilePage() {
 
       {/* Chain note */}
       <p className="mt-10 text-xs" style={{ color: 'var(--color-mute)' }}>
-        Stats are based on pots created through IPIN on Arc Testnet.
+        Stats are based on pots created through IPIN on Arc Mainnet.
         Allocated totals are recorded at creation time.
       </p>
     </main>

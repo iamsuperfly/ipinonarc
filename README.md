@@ -13,7 +13,7 @@
 
 Built for the **Circle Arc Hackathon**
 
-### ▶ [Live app](https://ipinonarc.vercel.app) · [Contract on Arc Explorer](https://arc.etherscan.io/address/0xA2b6E06f57AD38f045A62a04b406953dD9575D94) · [Built with Arc Studio](https://studio.arc.io)
+### ▶ [Live app](https://ipinonarc.vercel.app) · [Contract on Arc Explorer](https://arc.etherscan.io/address/0xA2b6E06f57AD38f045A62a04b406953dD9575D94) · [Built with Arc Studio](https://studio.arc.io/app/9cdc8a89-ec06-44ef-b9da-9239f083158c?thread=72c1caea-84e3-4b5d-bcb3-7b1a8869ea7c)
 
 ---
 

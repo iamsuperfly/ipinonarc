@@ -12,17 +12,16 @@ IPIN is a distribution layer for USDC on Arc. An owner creates a "pot" with a na
 
 | Chain | Address | Explorer | Deploy Block |
 |-------|---------|---------|-------------|
+| **Arc Mainnet (v2, with fees)** | `0xA2b6E06f57AD38f045A62a04b406953dD9575D94` | [ArcScan](https://arc.etherscan.io/address/0xA2b6E06f57AD38f045A62a04b406953dD9575D94) | 27512282 |
 | Arc Testnet (v2, with fees) | `0x73d690ee60aea5615dfc67d0d179abbdafa3257f` | [ArcScan](https://explorer.testnet.arc.io/address/0x73d690ee60aea5615dfc67d0d179abbdafa3257f) | 68574971 |
 | Arc Testnet (v1, no fees) | `0x57ccd9d1fe3dd6bea51c591e4f447c96ca985f1b` | [ArcScan](https://explorer.testnet.arc.io/address/0x57ccd9d1fe3dd6bea51c591e4f447c96ca985f1b) | 67386375 |
 
 **Constructor args (v2):** `(_usdc, _owner, _feeRecipient)`
-- USDC: `0x3600000000000000000000000000000000000000` (Arc Testnet)
-- Owner: deployer wallet
+- USDC: `0x3600000000000000000000000000000000000000` (same on mainnet and testnet)
+- Owner: `0xc28ad0564edf25b517fae206a84063b5a0b2489a`
 - FeeRecipient: `0xc28ad0564edf25b517fae206a84063b5a0b2489a`
 
 **Fee:** 0.25% on `fund()`, capped at 20 USDC. Fee charged on top of funded amount.
-
-**For Arc Mainnet:** deploy a new `IPINDistributor` with the Arc Mainnet USDC address, then update `src/contract.ts` with the new address and chain ID.
 
 ---
 

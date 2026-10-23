@@ -1,5 +1,5 @@
 import { useAccount, useSwitchChain } from 'wagmi'
-import { arcTestnet } from 'viem/chains'
+import { arc } from 'viem/chains'
 import { ARC_TESTNET_CHAIN_ID } from '../contract'
 
 export default function WrongChainBanner() {
@@ -11,8 +11,8 @@ export default function WrongChainBanner() {
   const addAndSwitch = () => {
     switchChain({
       chainId: ARC_TESTNET_CHAIN_ID,
-      // viem/chains arcTestnet has the addEthereumChain params wagmi needs
-      ...(arcTestnet as object),
+      // viem/chains arc has the addEthereumChain params wagmi needs
+      ...(arc as object),
     })
   }
 
@@ -22,7 +22,7 @@ export default function WrongChainBanner() {
       style={{ background: 'rgba(0,122,102,0.08)', borderBottom: '1px solid rgba(0,122,102,0.20)' }}
     >
       <span style={{ color: 'var(--color-laterite)' }}>
-        IPIN runs on <strong>Arc Testnet</strong>. Switch your wallet to continue.
+        IPIN runs on <strong>Arc</strong>. Switch your wallet to continue.
       </span>
       <button
         onClick={addAndSwitch}

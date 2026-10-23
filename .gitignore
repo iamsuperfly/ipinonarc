@@ -13,6 +13,7 @@ dist/
 # Foundry
 contracts/out/
 contracts/cache/
+cache/
 
 # Logs & debug
 *.log

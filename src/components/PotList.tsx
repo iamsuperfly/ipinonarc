@@ -42,11 +42,17 @@ export default function PotList({ refreshKey, onRefresh, onCreatePot }: Props) {
           const map: Record<string, string> = {}
           for (const r of rows) map[String(r.pot_id)] = r.created_at
           setCreatedAtMap(map)
+          setInitialLoading(false)
+          setRefreshing(false)
           return
         }
 
         // Fallback: scan RPC logs in 9999-block batches
-        if (!client) return
+        if (!client) {
+          setInitialLoading(false)
+          setRefreshing(false)
+          return
+        }
 
         const head = await client.getBlockNumber()
         const BATCH = 9999n
@@ -101,7 +107,7 @@ export default function PotList({ refreshKey, onRefresh, onCreatePot }: Props) {
           className="mx-auto mb-5 flex size-16 items-center justify-center rounded-3xl text-2xl font-bold"
           style={{ background: 'rgba(0,122,102,0.08)', color: 'var(--color-laterite)' }}
         >
-          IP
+          IPIN
         </div>
         <h3 className="text-xl font-bold">No pots yet</h3>
         <p className="mx-auto mt-2 max-w-xs text-sm" style={{ color: 'var(--color-mute)' }}>

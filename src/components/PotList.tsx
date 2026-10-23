@@ -35,7 +35,7 @@ export default function PotList({ refreshKey, onRefresh, onCreatePot }: Props) {
     void (async () => {
       try {
         // Primary: Supabase — instant, no RPC, cross-device
-        const rows = await fetchPots(address, ARC_TESTNET_CHAIN_ID)
+        const rows = await fetchPots(address, ARC_TESTNET_CHAIN_ID, IPIN_ADDRESS)
 
         if (rows.length > 0) {
           setPotIds(rows.map(r => BigInt(r.pot_id)))

@@ -4,7 +4,7 @@ import { useAccount } from 'wagmi'
 import { useReadContract } from 'wagmi'
 import { erc20Abi } from 'viem'
 import { Loader2 } from 'lucide-react'
-import { USDC_ADDRESS, ARC_TESTNET_CHAIN_ID } from '../contract'
+import { USDC_ADDRESS, IPIN_ADDRESS, ARC_TESTNET_CHAIN_ID } from '../contract'
 import { fetchPots } from '../supabase'
 import { formatUsdc } from '../utils'
 
@@ -38,7 +38,7 @@ export default function ProfilePage() {
   useEffect(() => {
     if (!address) return
     void (async () => {
-      const rows = await fetchPots(address, ARC_TESTNET_CHAIN_ID)
+      const rows = await fetchPots(address, ARC_TESTNET_CHAIN_ID, IPIN_ADDRESS)
       setTotalPots(rows.length)
       setTotalAllocated(rows.reduce((sum, r) => sum + Number(r.total_allocated), 0))
       setLoading(false)

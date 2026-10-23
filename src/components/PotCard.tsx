@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
 import { useReadContract, useWriteContract, useWaitForTransactionReceipt, useAccount, useSwitchChain } from 'wagmi'
+import { erc20Abi } from 'viem'
 import { ChevronDown, ChevronUp, CheckCircle, XCircle, Clock, Loader2, ExternalLink } from 'lucide-react'
 import { toast } from 'sonner'
-import { IPIN_CONTRACT, ARC_TESTNET_CHAIN_ID } from '../contract'
+import { IPIN_CONTRACT, IPIN_ADDRESS, USDC_ADDRESS, ARC_TESTNET_CHAIN_ID } from '../contract'
 import { formatAddress, formatUsdc, parseOnchainError } from '../utils'
 import FundSheet from './FundSheet'
 import WithdrawSheet from './WithdrawSheet'
@@ -59,6 +60,16 @@ export default function PotCard({ potId, onRefresh, createdAt }: Props) {
     functionName: 'getRecipients',
     args: [potId],
     chainId: ARC_TESTNET_CHAIN_ID,
+  })
+
+  // Read USDC allowance so we can label the Fund button correctly
+  const { data: allowance } = useReadContract({
+    address: USDC_ADDRESS,
+    abi: erc20Abi,
+    functionName: 'allowance',
+    args: [walletAddress!, IPIN_ADDRESS],
+    chainId: ARC_TESTNET_CHAIN_ID,
+    query: { enabled: !!walletAddress },
   })
 
   const refetch = () => { void refetchPot(); void refetchRecipients(); onRefresh() }
@@ -137,6 +148,16 @@ export default function PotCard({ potId, onRefresh, createdAt }: Props) {
   const recipients = (recipientsRaw ?? []) as RecipientData[]
   const isOwner = walletAddress?.toLowerCase() === owner.toLowerCase()
   const isFunded = fundedAmount >= totalAllocated
+
+  // Determine if the user still needs to approve before funding
+  // (allowance undefined while loading — default to showing "Approve & Fund")
+  const still = totalAllocated - fundedAmount
+  const hasAllowance = (allowance ?? 0n) >= still && still > 0n
+  const fundBtnLabel = isFunded
+    ? 'Add more funds'
+    : hasAllowance
+    ? 'Fund'
+    : 'Approve & Fund'
   const allPaid = recipients.length > 0 && recipients.every(r => r.paid)
   const remaining = fundedAmount - paidOut
   const paidCount = recipients.filter(r => r.paid).length
@@ -257,7 +278,7 @@ export default function PotCard({ potId, onRefresh, createdAt }: Props) {
             <div className="flex flex-wrap gap-2">
               {/* Fund is always available while pot is open */}
               <button onClick={() => setShowFund(true)} className="btn-ghost h-11 px-4 text-sm">
-                {isFunded ? 'Add more funds' : 'Fund'}
+                {fundBtnLabel}
               </button>
 
               {/* Pay (payAll) — primary, unlocks when funded */}
@@ -300,10 +321,10 @@ export default function PotCard({ potId, onRefresh, createdAt }: Props) {
             </button>
           )}
 
-          {/* Explorer link */}
-          {payHash && (
+          {/* Explorer link — show for whichever pay hash is available */}
+          {(payHash ?? bestEffortHash) && (
             <a
-              href={buildTxExplorerUrl(payHash)}
+              href={buildTxExplorerUrl((payHash ?? bestEffortHash)!)}
               target="_blank"
               rel="noreferrer"
               className="mt-3 inline-flex items-center gap-1 text-xs"

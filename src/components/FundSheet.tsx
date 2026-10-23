@@ -215,7 +215,7 @@ export default function FundSheet({ open, potId, totalAllocated, fundedAmount, o
                     <span className="font-mono font-semibold tabular-nums">{formatUsdc(parsedAmount)} USDC</span>
                   </div>
                   <div className="flex justify-between">
-                    <span style={{ color: 'var(--color-mute)' }}>Service fee (0.25%)</span>
+                    <span style={{ color: 'var(--color-mute)' }}>Service fee (0.25%, max 20 USDC)</span>
                     <span className="font-mono tabular-nums" style={{ color: 'var(--color-mute)' }}>{formatUsdc(fee)} USDC</span>
                   </div>
                   <div className="flex justify-between border-t pt-1" style={{ borderColor: 'rgba(27,24,19,0.08)' }}>

@@ -17,6 +17,7 @@ export interface PotRow {
   total_allocated: number
   tx_hash: string
   chain_id: number
+  contract_address: string | null
   created_at: string
 }
 
@@ -28,6 +29,7 @@ export async function savePot(data: {
   totalAllocated: bigint
   txHash: string
   chainId: number
+  contractAddress: string
 }): Promise<void> {
   const { error } = await supabase.from('pots').insert({
     pot_id: Number(data.potId),
@@ -36,23 +38,20 @@ export async function savePot(data: {
     total_allocated: Number(data.totalAllocated) / 1_000_000,
     tx_hash: data.txHash,
     chain_id: data.chainId,
+    contract_address: data.contractAddress.toLowerCase(),
   })
   if (error) console.error('Supabase savePot error:', error.message)
 }
 
-/** Fetch all pot IDs for a wallet address, newest first. */
-export async function fetchPotIds(owner: string, chainId: number): Promise<bigint[]> {
-  const rows = await fetchPots(owner, chainId)
-  return rows.map(r => BigInt(r.pot_id))
-}
 
-/** Fetch full pot rows (including created_at) for a wallet address, newest first. */
-export async function fetchPots(owner: string, chainId: number): Promise<PotRow[]> {
+/** Fetch full pot rows (including created_at) for a wallet address and contract, newest first. */
+export async function fetchPots(owner: string, chainId: number, contractAddress: string): Promise<PotRow[]> {
   const { data, error } = await supabase
     .from('pots')
     .select('*')
     .eq('chain_id', chainId)
     .ilike('owner', owner.toLowerCase())
+    .ilike('contract_address', contractAddress.toLowerCase())
     .order('created_at', { ascending: false })
 
   if (error) {

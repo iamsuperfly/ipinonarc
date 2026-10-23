@@ -4,7 +4,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { X, Plus, Trash2, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { decodeEventLog } from 'viem'
-import { IPIN_CONTRACT, ARC_TESTNET_CHAIN_ID } from '../contract'
+import { IPIN_CONTRACT, IPIN_ADDRESS, ARC_TESTNET_CHAIN_ID } from '../contract'
 import { parseOnchainError } from '../utils'
 import { savePot } from '../supabase'
 
@@ -76,6 +76,7 @@ export default function CreatePotModal({ open, onClose, onCreated }: Props) {
               totalAllocated: args.totalAllocated,
               txHash: receipt.transactionHash,
               chainId: ARC_TESTNET_CHAIN_ID,
+              contractAddress: IPIN_ADDRESS,
             })
             break
           } catch {

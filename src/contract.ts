@@ -36,7 +36,7 @@ export const IPIN_ABI = [
   { type: 'function', name: 'setFeeRecipient', inputs: [{ name: 'newRecipient', type: 'address', internalType: 'address' }], outputs: [], stateMutability: 'nonpayable' },
   { type: 'function', name: 'transferOwnership', inputs: [{ name: 'newOwner', type: 'address', internalType: 'address' }], outputs: [], stateMutability: 'nonpayable' },
   { type: 'function', name: 'usdc', inputs: [], outputs: [{ name: '', type: 'address', internalType: 'address' }], stateMutability: 'view' },
-  { type: 'function', name: 'withdraw', inputs: [{ name: 'potId', type: 'uint256', internalType: 'uint256' }], outputs: [], stateMutability: 'nonpayable' },
+  { type: 'function', name: 'withdraw', inputs: [{ name: 'potId', type: 'uint256', internalType: 'uint256' }, { name: 'to', type: 'address', internalType: 'address' }], outputs: [], stateMutability: 'nonpayable' },
   { type: 'event', name: 'FeeCharged', inputs: [{ name: 'potId', type: 'uint256', indexed: true, internalType: 'uint256' }, { name: 'fee', type: 'uint256', indexed: false, internalType: 'uint256' }], anonymous: false },
   { type: 'event', name: 'FeeRecipientUpdated', inputs: [{ name: 'previous', type: 'address', indexed: true, internalType: 'address' }, { name: 'next', type: 'address', indexed: true, internalType: 'address' }], anonymous: false },
   { type: 'event', name: 'OwnershipTransferred', inputs: [{ name: 'previousOwner', type: 'address', indexed: true, internalType: 'address' }, { name: 'newOwner', type: 'address', indexed: true, internalType: 'address' }], anonymous: false },

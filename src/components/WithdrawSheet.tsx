@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useAccount, useWriteContract, useWaitForTransactionReceipt } from 'wagmi'
 import { AnimatePresence, motion } from 'framer-motion'
 import { X, Loader2 } from 'lucide-react'
@@ -21,13 +21,15 @@ export default function WithdrawSheet({ open, potId, remaining, onClose, onWithd
   const { writeContract, data: hash, isPending, reset } = useWriteContract()
   const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash })
 
-  if (isSuccess) { toast.success('Withdrawn!'); onWithdrawn(); reset(); setToAddress('') }
+  useEffect(() => {
+    if (isSuccess) { toast.success('Withdrawn!'); onWithdrawn(); reset() }
+  }, [isSuccess, onWithdrawn, reset])
 
   const handleWithdraw = () => {
-    const dest = toAddress.trim() || address
+    const dest = (toAddress.trim() || address) as `0x${string}` | undefined
     if (!dest || !/^0x[0-9a-fA-F]{40}$/.test(dest)) { toast.error('Enter a valid destination address.'); return }
     try {
-      writeContract({ ...IPIN_CONTRACT, functionName: 'withdraw', args: [potId], __mode: 'prepared' })
+      writeContract({ ...IPIN_CONTRACT, functionName: 'withdraw', args: [potId, dest], __mode: 'prepared' })
     } catch (e) { toast.error(parseOnchainError(e)) }
   }
 

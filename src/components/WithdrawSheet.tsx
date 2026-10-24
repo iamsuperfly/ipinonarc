@@ -27,7 +27,7 @@ export default function WithdrawSheet({ open, potId, remaining, onClose, onWithd
     const dest = toAddress.trim() || address
     if (!dest || !/^0x[0-9a-fA-F]{40}$/.test(dest)) { toast.error('Enter a valid destination address.'); return }
     try {
-      writeContract({ ...IPIN_CONTRACT, functionName: 'withdraw', args: [potId, dest as `0x${string}`], __mode: 'prepared' })
+      writeContract({ ...IPIN_CONTRACT, functionName: 'withdraw', args: [potId], __mode: 'prepared' })
     } catch (e) { toast.error(parseOnchainError(e)) }
   }
 

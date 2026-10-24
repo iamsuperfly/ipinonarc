@@ -13,6 +13,10 @@ IPIN is a distribution layer for USDC on Arc. An owner creates a "pot" with a na
 | Chain | Address | Explorer | Deploy Block |
 |-------|---------|---------|-------------|
 | **Arc Mainnet (v2, with fees)** | `0xA2b6E06f57AD38f045A62a04b406953dD9575D94` | [ArcScan](https://arc.etherscan.io/address/0xA2b6E06f57AD38f045A62a04b406953dD9575D94) | 27512282 |
+
+**Example mainnet tx (payAll — first distribution):**
+`0x75ff570ffb3ee188115e1df2083d14cd4113597bb8c4e8fe282619ead5dff5b5`
+https://arc.etherscan.io/tx/0x75ff570ffb3ee188115e1df2083d14cd4113597bb8c4e8fe282619ead5dff5b5
 | Arc Testnet (v2, with fees) | `0x73d690ee60aea5615dfc67d0d179abbdafa3257f` | [ArcScan](https://explorer.testnet.arc.io/address/0x73d690ee60aea5615dfc67d0d179abbdafa3257f) | 68574971 |
 | Arc Testnet (v1, no fees) | `0x57ccd9d1fe3dd6bea51c591e4f447c96ca985f1b` | [ArcScan](https://explorer.testnet.arc.io/address/0x57ccd9d1fe3dd6bea51c591e4f447c96ca985f1b) | 67386375 |
 

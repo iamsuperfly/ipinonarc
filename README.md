@@ -170,7 +170,7 @@ In Remix: paste `contracts/IPINDistributor.sol`, compile with Solidity `0.8.20` 
 |---|---|
 | Deployed on Arc Mainnet | ✅ `0xA2b6E06f...` — verified, live |
 | USDC as the payment asset | ✅ Only USDC, enforced in constructor |
-| Real distribution executed | ✅ First pot created, funded, paid, closed on mainnet |
+| Real distribution executed | ✅ [payAll tx](https://arc.etherscan.io/tx/0x75ff570ffb3ee188115e1df2083d14cd4113597bb8c4e8fe282619ead5dff5b5) — pot created, funded, paid, closed on mainnet |
 | Arc-native gas (USDC only) | ✅ No ETH required for any operation |
 | Smart contract security | ✅ Dual audit (rule corpus + functional), Slither, 79/79 unit tests |
 | Frontend on Arc | ✅ Live at ipinonarc.vercel.app |

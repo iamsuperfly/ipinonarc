@@ -84,7 +84,7 @@ export default function FundSheet({ open, potId, totalAllocated, fundedAmount, o
     chainId: ARC_TESTNET_CHAIN_ID,
     query: { enabled: parsedAmount > 0n },
   })
-  const fee = (feeData as bigint | undefined) ?? 0n
+  const fee = (feeData) ?? 0n
   const totalCharged = parsedAmount + fee
 
   const needsApproval = totalCharged > 0n && (allowance ?? 0n) < totalCharged

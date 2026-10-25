@@ -124,7 +124,7 @@ export default function PotCard({ potId, onRefresh, createdAt }: Props) {
 
   useEffect(() => {
     if (closeSuccess) {
-      toast.success('Pot paid and closed!')
+      toast.success(paySuccess || bestEffortSuccess ? 'Pot paid and closed!' : 'Pot closed — withdraw your funds.')
       closeReset()
       refetch()
     }
@@ -302,6 +302,21 @@ export default function PotCard({ potId, onRefresh, createdAt }: Props) {
                   style={{ color: 'var(--color-danger)' }}
                 >
                   Pay anyway ({failedCount} failed)
+                </button>
+              )}
+
+              {/* Manual close — lets owner cancel and recover funded USDC */}
+              {fundedAmount > 0n && !allPaid && (
+                <button
+                  onClick={() => {
+                    if (!ensureChain()) return
+                    writeClose({ ...IPIN_CONTRACT, functionName: 'closePot', args: [potId], __mode: 'prepared' })
+                  }}
+                  disabled={isWorking}
+                  className="btn-ghost h-11 px-4 text-sm"
+                  style={{ color: 'var(--color-danger)' }}
+                >
+                  {closePending || closeConfirming ? 'Closing…' : 'Close & recover'}
                 </button>
               )}
 

@@ -13,7 +13,7 @@
 
 Built for the **Circle Arc Hackathon**
 
-### ▶ [Live app](https://ipinonarc.vercel.app) · [Contract on Arc Explorer](https://arc.etherscan.io/address/0xA2b6E06f57AD38f045A62a04b406953dD9575D94) · [Built with Arc Studio](https://studio.arc.io/app/9cdc8a89-ec06-44ef-b9da-9239f083158c?thread=72c1caea-84e3-4b5d-bcb3-7b1a8869ea7c)
+### ▶ [Live app](https://ipinonarc.vercel.app) · [Contract on Arc Explorer](https://arc.etherscan.io/address/0xA2b6E06f57AD38f045A62a04b406953dD9575D94) · [Built with Arc Studio](https://studio.arc.io/app/9cdc8a89-ec06-44ef-b9da-9239f083158c?thread=72c1caea-84e3-4b5d-bcb3-7b1a8869ea7c) · [Video walkthrough](https://youtu.be/YwchA6j_hS4)
 
 ---
 
@@ -175,6 +175,7 @@ In Remix: paste `contracts/IPINDistributor.sol`, compile with Solidity `0.8.20` 
 | Smart contract security | ✅ Dual audit (rule corpus + functional), Slither, 79/79 unit tests |
 | Frontend on Arc | ✅ Live at ipinonarc.vercel.app |
 | Built with Arc Studio | ✅ [View project thread](https://studio.arc.io/app/9cdc8a89-ec06-44ef-b9da-9239f083158c?thread=72c1caea-84e3-4b5d-bcb3-7b1a8869ea7c) |
+| Video walkthrough | ✅ [YouTube](https://youtu.be/YwchA6j_hS4) |
 
 ---
 

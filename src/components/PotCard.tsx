@@ -190,7 +190,7 @@ export default function PotCard({ potId, onRefresh, createdAt }: Props) {
   }
 
   // Status badge
-  const statusLabel = closed ? 'Paid & closed' : isFunded ? 'Ready to pay' : 'Needs funding'
+  const statusLabel = closed && paidOut === totalAllocated ? 'Paid & closed' : closed ? 'Closed' : isFunded ? 'Ready to pay' : 'Needs funding'
   const statusStyle: React.CSSProperties = closed
     ? { background: 'rgba(0,122,102,0.10)', color: 'var(--color-laterite)' }
     : isFunded
@@ -337,7 +337,7 @@ export default function PotCard({ potId, onRefresh, createdAt }: Props) {
           {/* Withdraw residual after pot is closed */}
           {isOwner && closed && remaining > 0n && (
             <button onClick={() => setShowWithdraw(true)} className="btn-ghost h-11 px-4 text-sm">
-              Withdraw {formatUsdc(remaining)} USDC
+              Recover {formatUsdc(remaining)} USDC
             </button>
           )}
 

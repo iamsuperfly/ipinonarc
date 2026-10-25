@@ -69,8 +69,8 @@ export default function Header() {
         <div className="hidden items-center gap-5 sm:flex">
           {isConnected && (
             <>
-              <NavLink to="/pots" className={navLinkClass}>Pots</NavLink>
-              <NavLink to="/profile" className={navLinkClass}>Profile</NavLink>
+              <NavLink to="/pots" className={navLinkClass} onClick={() => setShowWalletMenu(false)}>Pots</NavLink>
+              <NavLink to="/profile" className={navLinkClass} onClick={() => setShowWalletMenu(false)}>Profile</NavLink>
             </>
           )}
 

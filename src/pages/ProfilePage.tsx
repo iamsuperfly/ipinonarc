@@ -24,7 +24,7 @@ export default function ProfilePage() {
   const { address, isConnected } = useAccount()
   const [loading, setLoading] = useState(true)
   const [totalPots, setTotalPots] = useState(0)
-  const [totalAllocated, setTotalAllocated] = useState(0)
+  const [totalAllocated, setTotalAllocated] = useState('')
 
   const { data: usdcBalance } = useReadContract({
     address: USDC_ADDRESS,
@@ -40,7 +40,9 @@ export default function ProfilePage() {
     void (async () => {
       const rows = await fetchPots(address, ARC_CHAIN_ID, IPIN_ADDRESS)
       setTotalPots(rows.length)
-      setTotalAllocated(rows.reduce((sum, r) => sum + Number(r.total_allocated), 0))
+      // Sum as integer cents (multiply by 100 to avoid float imprecision), then format
+      const sumCents = rows.reduce((sum, r) => sum + Math.round(Number(r.total_allocated) * 100), 0)
+      setTotalAllocated((sumCents / 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }))
       setLoading(false)
     })()
   }, [address])
@@ -78,7 +80,7 @@ export default function ProfilePage() {
           <StatCard label="Pots created" value={String(totalPots)} />
           <StatCard
             label="USDC allocated"
-            value={`$${totalAllocated.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+            value={`$${totalAllocated}`}
           />
           <StatCard
             label="Wallet balance"

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useAccount, usePublicClient } from 'wagmi'
 import { Loader2, RefreshCw } from 'lucide-react'
 import { parseAbiItem } from 'viem'
-import { IPIN_ADDRESS, IPIN_DEPLOY_BLOCK, ARC_TESTNET_CHAIN_ID } from '../contract'
+import { IPIN_ADDRESS, IPIN_DEPLOY_BLOCK, ARC_CHAIN_ID } from '../contract'
 import { fetchPots } from '../supabase'
 import PotCard from './PotCard'
 
@@ -18,7 +18,7 @@ const POT_CREATED_EVENT = parseAbiItem(
 
 export default function PotList({ refreshKey, onRefresh, onCreatePot }: Props) {
   const { address } = useAccount()
-  const client = usePublicClient({ chainId: ARC_TESTNET_CHAIN_ID })
+  const client = usePublicClient({ chainId: ARC_CHAIN_ID })
   const [potIds, setPotIds] = useState<bigint[]>([])
   const [createdAtMap, setCreatedAtMap] = useState<Record<string, string>>({})
   const [initialLoading, setInitialLoading] = useState(true)
@@ -35,7 +35,7 @@ export default function PotList({ refreshKey, onRefresh, onCreatePot }: Props) {
     void (async () => {
       try {
         // Primary: Supabase — instant, no RPC, cross-device
-        const rows = await fetchPots(address, ARC_TESTNET_CHAIN_ID, IPIN_ADDRESS)
+        const rows = await fetchPots(address, ARC_CHAIN_ID, IPIN_ADDRESS)
 
         if (rows.length > 0) {
           setPotIds(rows.map(r => BigInt(r.pot_id)))

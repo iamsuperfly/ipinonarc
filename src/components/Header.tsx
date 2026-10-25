@@ -4,7 +4,7 @@ import { useAccount, useConnect, useDisconnect, useReadContract } from 'wagmi'
 import { injected } from 'wagmi/connectors'
 import { erc20Abi } from 'viem'
 import { Menu, X, LogOut, Copy, Check, User, Layers } from 'lucide-react'
-import { USDC_ADDRESS, ARC_TESTNET_CHAIN_ID } from '../contract'
+import { USDC_ADDRESS, ARC_CHAIN_ID } from '../contract'
 import { formatUsdc } from '../utils'
 
 function shortAddr(addr: string) {
@@ -17,7 +17,7 @@ function useUsdcBalance(address?: `0x${string}`) {
     abi: erc20Abi,
     functionName: 'balanceOf',
     args: [address!],
-    chainId: ARC_TESTNET_CHAIN_ID,
+    chainId: ARC_CHAIN_ID,
     query: { enabled: !!address, refetchInterval: 15_000 },
   })
   return data ?? 0n

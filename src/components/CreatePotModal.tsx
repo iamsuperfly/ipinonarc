@@ -4,7 +4,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { X, Plus, Trash2, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { decodeEventLog } from 'viem'
-import { IPIN_CONTRACT, IPIN_ADDRESS, ARC_TESTNET_CHAIN_ID } from '../contract'
+import { IPIN_CONTRACT, IPIN_ADDRESS, ARC_CHAIN_ID } from '../contract'
 import { parseOnchainError } from '../utils'
 import { savePot } from '../supabase'
 
@@ -75,7 +75,7 @@ export default function CreatePotModal({ open, onClose, onCreated }: Props) {
               name: args.name,
               totalAllocated: args.totalAllocated,
               txHash: receipt.transactionHash,
-              chainId: ARC_TESTNET_CHAIN_ID,
+              chainId: ARC_CHAIN_ID,
               contractAddress: IPIN_ADDRESS,
             })
             break
@@ -107,8 +107,8 @@ export default function CreatePotModal({ open, onClose, onCreated }: Props) {
   }
 
   const handleCreate = () => {
-    if (chainId !== ARC_TESTNET_CHAIN_ID) {
-      switchChain({ chainId: ARC_TESTNET_CHAIN_ID })
+    if (chainId !== ARC_CHAIN_ID) {
+      switchChain({ chainId: ARC_CHAIN_ID })
       return
     }
     if (!name.trim()) { toast.error('Give the pot a name.'); return }

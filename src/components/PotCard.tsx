@@ -3,7 +3,7 @@ import { useReadContract, useWriteContract, useWaitForTransactionReceipt, useAcc
 import { erc20Abi } from 'viem'
 import { ChevronDown, ChevronUp, CheckCircle, XCircle, Clock, Loader2, ExternalLink } from 'lucide-react'
 import { toast } from 'sonner'
-import { IPIN_CONTRACT, IPIN_ADDRESS, USDC_ADDRESS, ARC_TESTNET_CHAIN_ID } from '../contract'
+import { IPIN_CONTRACT, IPIN_ADDRESS, USDC_ADDRESS, ARC_CHAIN_ID } from '../contract'
 import { formatAddress, formatUsdc, parseOnchainError } from '../utils'
 import FundSheet from './FundSheet'
 import WithdrawSheet from './WithdrawSheet'
@@ -46,20 +46,21 @@ export default function PotCard({ potId, onRefresh, createdAt }: Props) {
   const [expanded, setExpanded] = useState(false)
   const [showFund, setShowFund] = useState(false)
   const [showWithdraw, setShowWithdraw] = useState(false)
+  const [closedAfterPay, setClosedAfterPay] = useState(false)
 
   // ── reads ──────────────────────────────────────────────────────────────
   const { data: potData, refetch: refetchPot } = useReadContract({
     ...IPIN_CONTRACT,
     functionName: 'getPot',
     args: [potId],
-    chainId: ARC_TESTNET_CHAIN_ID,
+    chainId: ARC_CHAIN_ID,
   })
 
   const { data: recipientsRaw, refetch: refetchRecipients } = useReadContract({
     ...IPIN_CONTRACT,
     functionName: 'getRecipients',
     args: [potId],
-    chainId: ARC_TESTNET_CHAIN_ID,
+    chainId: ARC_CHAIN_ID,
   })
 
   // Read USDC allowance so we can label the Fund button correctly
@@ -68,7 +69,7 @@ export default function PotCard({ potId, onRefresh, createdAt }: Props) {
     abi: erc20Abi,
     functionName: 'allowance',
     args: [walletAddress!, IPIN_ADDRESS],
-    chainId: ARC_TESTNET_CHAIN_ID,
+    chainId: ARC_CHAIN_ID,
     query: { enabled: !!walletAddress },
   })
 
@@ -108,6 +109,7 @@ export default function PotCard({ potId, onRefresh, createdAt }: Props) {
   useEffect(() => {
     if (paySuccess) {
       payReset()
+      setClosedAfterPay(true)
       writeClose({ ...IPIN_CONTRACT, functionName: 'closePot', args: [potId], __mode: 'prepared' })
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -117,6 +119,7 @@ export default function PotCard({ potId, onRefresh, createdAt }: Props) {
   useEffect(() => {
     if (bestEffortSuccess) {
       bestEffortReset()
+      setClosedAfterPay(true)
       writeClose({ ...IPIN_CONTRACT, functionName: 'closePot', args: [potId], __mode: 'prepared' })
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -124,7 +127,8 @@ export default function PotCard({ potId, onRefresh, createdAt }: Props) {
 
   useEffect(() => {
     if (closeSuccess) {
-      toast.success(paySuccess || bestEffortSuccess ? 'Pot paid and closed!' : 'Pot closed — withdraw your funds.')
+      toast.success(closedAfterPay ? 'Pot paid and closed!' : 'Pot closed — withdraw your funds.')
+      setClosedAfterPay(false)
       closeReset()
       refetch()
     }
@@ -166,7 +170,7 @@ export default function PotCard({ potId, onRefresh, createdAt }: Props) {
   const isWorking = payPending || payConfirming || bestEffortPending || bestEffortConfirming || closePending || closeConfirming
 
   const ensureChain = () => {
-    if (chainId !== ARC_TESTNET_CHAIN_ID) { switchChain({ chainId: ARC_TESTNET_CHAIN_ID }); return false }
+    if (chainId !== ARC_CHAIN_ID) { switchChain({ chainId: ARC_CHAIN_ID }); return false }
     return true
   }
 
@@ -305,11 +309,12 @@ export default function PotCard({ potId, onRefresh, createdAt }: Props) {
                 </button>
               )}
 
-              {/* Manual close — lets owner cancel and recover funded USDC */}
-              {fundedAmount > 0n && !allPaid && (
+              {/* Manual close — only shown when pot is funded but NOT yet started paying */}
+              {fundedAmount > 0n && paidOut === 0n && failedCount === 0 && (
                 <button
                   onClick={() => {
                     if (!ensureChain()) return
+                    if (!confirm('Close this pot and recover all funds? This cannot be undone.')) return
                     writeClose({ ...IPIN_CONTRACT, functionName: 'closePot', args: [potId], __mode: 'prepared' })
                   }}
                   disabled={isWorking}

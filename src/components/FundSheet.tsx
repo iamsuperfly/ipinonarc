@@ -4,7 +4,7 @@ import { erc20Abi } from 'viem'
 import { AnimatePresence, motion } from 'framer-motion'
 import { X, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
-import { IPIN_CONTRACT, ARC_TESTNET_CHAIN_ID, USDC_ADDRESS } from '../contract'
+import { IPIN_CONTRACT, ARC_CHAIN_ID, USDC_ADDRESS } from '../contract'
 import { formatUsdc, parseOnchainError } from '../utils'
 
 function parseUsdc(value: string): bigint {
@@ -35,7 +35,7 @@ export default function FundSheet({ open, potId, totalAllocated, fundedAmount, o
     abi: erc20Abi,
     functionName: 'balanceOf',
     args: [address!],
-    chainId: ARC_TESTNET_CHAIN_ID,
+    chainId: ARC_CHAIN_ID,
     query: { enabled: !!address },
   })
 
@@ -44,7 +44,7 @@ export default function FundSheet({ open, potId, totalAllocated, fundedAmount, o
     abi: erc20Abi,
     functionName: 'allowance',
     args: [address!, IPIN_CONTRACT.address],
-    chainId: ARC_TESTNET_CHAIN_ID,
+    chainId: ARC_CHAIN_ID,
     query: { enabled: !!address },
   })
 
@@ -81,7 +81,7 @@ export default function FundSheet({ open, potId, totalAllocated, fundedAmount, o
     ...IPIN_CONTRACT,
     functionName: 'calculateFee',
     args: [parsedAmount],
-    chainId: ARC_TESTNET_CHAIN_ID,
+    chainId: ARC_CHAIN_ID,
     query: { enabled: parsedAmount > 0n },
   })
   const fee = (feeData) ?? 0n
@@ -90,7 +90,7 @@ export default function FundSheet({ open, potId, totalAllocated, fundedAmount, o
   const needsApproval = totalCharged > 0n && (allowance ?? 0n) < totalCharged
 
   const ensureChain = () => {
-    if (chainId !== ARC_TESTNET_CHAIN_ID) { switchChain({ chainId: ARC_TESTNET_CHAIN_ID }); return false }
+    if (chainId !== ARC_CHAIN_ID) { switchChain({ chainId: ARC_CHAIN_ID }); return false }
     return true
   }
 

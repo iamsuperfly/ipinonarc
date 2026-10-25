@@ -8,7 +8,7 @@ export const IPIN_ADDRESS = (
 export const IPIN_DEPLOY_BLOCK: bigint = BigInt(String(import.meta.env.VITE_IPIN_DEPLOY_BLOCK ?? '27512282'))
 
 // Arc Mainnet chain ID
-export const ARC_TESTNET_CHAIN_ID = 5042
+export const ARC_CHAIN_ID = 5042
 
 // Arc Mainnet USDC address (ERC-20) — same predeploy address on mainnet and testnet
 export const USDC_ADDRESS = '0x3600000000000000000000000000000000000000' as `0x${string}`

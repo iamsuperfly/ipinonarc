@@ -51,8 +51,8 @@ export default function LandingPage() {
           <ol id="how" className="mt-12 grid gap-4 sm:grid-cols-2">
             {([
               ['Create', 'Name it. Paste addresses. Set equal or custom splits.'],
-              ['Fund', 'Approve USDC and deposit into the pot.'],
-              ['Pay All', 'One transaction sends to every address at once.'],
+              ['Fund', 'Approve USDC (amount + 0.25% fee) and deposit into the pot.'],
+              ['Pay', 'One transaction sends to every address at once.'],
               ['Verify', 'The Arc transaction is the record.'],
             ] as [string, string][]).map(([t, d]) => (
               <li

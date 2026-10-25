@@ -1,16 +1,16 @@
 import { useAccount, useSwitchChain } from 'wagmi'
 import { arc } from 'viem/chains'
-import { ARC_TESTNET_CHAIN_ID } from '../contract'
+import { ARC_CHAIN_ID } from '../contract'
 
 export default function WrongChainBanner() {
   const { isConnected, chainId } = useAccount()
   const { switchChain, isPending } = useSwitchChain()
 
-  if (!isConnected || chainId === ARC_TESTNET_CHAIN_ID) return null
+  if (!isConnected || chainId === ARC_CHAIN_ID) return null
 
   const addAndSwitch = () => {
     switchChain({
-      chainId: ARC_TESTNET_CHAIN_ID,
+      chainId: ARC_CHAIN_ID,
       // viem/chains arc has the addEthereumChain params wagmi needs
       ...(arc as object),
     })

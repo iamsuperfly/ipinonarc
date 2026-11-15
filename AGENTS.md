@@ -1,7 +1,5 @@
 # IPIN — USDC Distribution Layer
 
-> Built with Arc Studio - money-powered apps in minutes
-
 IPIN is a distribution layer for USDC on Arc. An owner creates a "pot" with a name, recipient addresses and allocations, funds it with USDC, and pays everyone in one atomic transaction.
 
 ---

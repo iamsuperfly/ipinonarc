@@ -52,7 +52,7 @@ export default function App() {
           </div>
           <p className="mx-auto mt-10 max-w-6xl">
             © 2026 IPIN —{' '}
-            <a className="hover:underline" style={{ color: 'var(--color-ink)' }} href="https://x.com/iamsuperfly" target="_blank" rel="noreferrer">
+            <a className="hover:underline" style={{ color: 'var(--color-ink)' }} href="https://x.com/iamsuperflly" target="_blank" rel="noreferrer">
               Superfly
             </a>
           </p>

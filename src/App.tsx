@@ -31,7 +31,7 @@ export default function App() {
               <p className="text-2xl font-bold" style={{ color: 'var(--color-laterite)' }}>IPIN</p>
               <p className="mt-3 max-w-sm">A share is a share. Paid once.</p>
               <a
-                href="https://x.com/iamsuperflly"
+                href="https://x.com/ipinonarc"
                 target="_blank"
                 rel="noreferrer"
                 className="mt-5 inline-flex h-11 w-11 items-center justify-center rounded-2xl border"
@@ -52,7 +52,7 @@ export default function App() {
           </div>
           <p className="mx-auto mt-10 max-w-6xl">
             © 2026 IPIN —{' '}
-            <a className="hover:underline" style={{ color: 'var(--color-ink)' }} href="https://x.com/iamsuperflly" target="_blank" rel="noreferrer">
+            <a className="hover:underline" style={{ color: 'var(--color-ink)' }} href="https://x.com/iamsuperfly" target="_blank" rel="noreferrer">
               Superfly
             </a>
           </p>

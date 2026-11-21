@@ -74,7 +74,7 @@ export default function LandingPage() {
           <ol aria-labelledby="how" className="mt-4 grid gap-4 sm:grid-cols-2">
             {([
               ['Create', 'Name it. Paste addresses. Set equal or custom splits.'],
-              ['Fund', 'Approve USDC (amount + 0.25% fee, max 20 USDC) and deposit into the pot.'],
+              ['Fund', 'Approve USDC (amount + 0.25% fee) and deposit into the pot.'],
               ['Pay', 'One transaction sends to every address at once.'],
               ['Verify', 'The Arc transaction is the record.'],
             ] as [string, string][]).map(([t, d]) => (

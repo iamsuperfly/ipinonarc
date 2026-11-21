@@ -15,6 +15,8 @@ Built for the **Circle Arc Hackathon**
 
 ### ▶ [Live app](https://ipinonarc.vercel.app) · [Contract on Arc Explorer](https://arc.etherscan.io/address/0xA2b6E06f57AD38f045A62a04b406953dD9575D94) · [Video walkthrough](https://youtu.be/YwchA6j_hS4)
 
+![IPIN live app](docs/screenshots/live-app.png)
+
 ---
 
 ## Table of contents

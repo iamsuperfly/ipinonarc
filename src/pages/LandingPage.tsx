@@ -1,6 +1,5 @@
 import { useNavigate } from 'react-router-dom'
 import { useAccount } from 'wagmi'
-import ConnectWalletButton from '../components/ConnectWalletButton'
 
 export default function LandingPage() {
   const { isConnected } = useAccount()
@@ -35,8 +34,6 @@ export default function LandingPage() {
                 Go to my pots →
               </button>
             ) : (
-              <>
-                <ConnectWalletButton className="btn-primary px-8 text-base" />
                 <p className="mt-3 text-sm" style={{ color: 'var(--color-mute)' }}>
                   No wallet yet?{' '}
                   <a
@@ -60,7 +57,6 @@ export default function LandingPage() {
                   </a>{' '}
                   — then connect.
                 </p>
-              </>
             )}
           </div>
 

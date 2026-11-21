@@ -56,13 +56,8 @@ export default function Header() {
     >
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
         {/* Brand — a link, not a button, so it is a real home link */}
-        <Link
-          to="/"
-          className="text-xl font-bold"
-          style={{ color: 'var(--color-laterite)' }}
-          aria-label="IPIN — home"
-        >
-          IPIN
+        <Link to="/" aria-label="IPIN — home" className="shrink-0">
+          <img src="/ipin-logo-header.png" alt="IPIN" className="h-8 w-auto rounded-md" />
         </Link>
 
         {/* Desktop nav + wallet */}

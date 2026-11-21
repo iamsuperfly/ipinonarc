@@ -57,7 +57,7 @@ export default function Header() {
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
         {/* Brand — a link, not a button, so it is a real home link */}
         <Link to="/" aria-label="IPIN — home" className="shrink-0">
-          <img src="/ipin-logo-header.png" alt="IPIN" className="h-8 w-auto rounded-md" />
+          <img src="/ipin-logo-header.png" alt="IPIN" className="h-5 w-auto" />
         </Link>
 
         {/* Desktop nav + wallet */}
@@ -121,7 +121,7 @@ export default function Header() {
               )}
             </div>
           ) : (
-            <ConnectWalletButton className="btn-primary h-10 px-5 text-sm" />
+            <ConnectWalletButton className="btn-primary btn-primary-sm" />
           )}
         </div>
 
@@ -137,7 +137,7 @@ export default function Header() {
               {mobileOpen ? <X className="size-5" /> : <Menu className="size-5" />}
             </button>
           ) : (
-            <ConnectWalletButton className="btn-primary h-10 px-5 text-sm" />
+            <ConnectWalletButton className="btn-primary btn-primary-sm" />
           )}
         </div>
       </div>

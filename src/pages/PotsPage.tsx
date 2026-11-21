@@ -1,16 +1,23 @@
 import { useState } from 'react'
-import { Navigate } from 'react-router-dom'
 import { useAccount } from 'wagmi'
 import { Plus } from 'lucide-react'
 import PotList from '../components/PotList'
 import CreatePotModal from '../components/CreatePotModal'
+import ConnectGate from '../components/ConnectGate'
 
 export default function PotsPage() {
   const { isConnected } = useAccount()
   const [showCreate, setShowCreate] = useState(false)
   const [refreshKey, setRefreshKey] = useState(0)
 
-  if (!isConnected) return <Navigate to="/" replace />
+  if (!isConnected) {
+    return (
+      <ConnectGate
+        title="Connect your wallet to see your pots"
+        description="Your pots live on Arc Mainnet and are tied to your wallet address. Connect to view, fund and pay them."
+      />
+    )
+  }
 
   return (
     <main className="relative z-10 mx-auto max-w-6xl px-4 pb-28 pt-10 sm:px-6">

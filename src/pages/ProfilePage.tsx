@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react'
-import { Navigate } from 'react-router-dom'
 import { useAccount } from 'wagmi'
 import { useReadContract } from 'wagmi'
 import { erc20Abi } from 'viem'
@@ -7,6 +6,7 @@ import { Loader2 } from 'lucide-react'
 import { USDC_ADDRESS, IPIN_ADDRESS, ARC_CHAIN_ID } from '../contract'
 import { fetchPots } from '../supabase'
 import { formatUsdc } from '../utils'
+import ConnectGate from '../components/ConnectGate'
 
 function StatCard({ label, value }: { label: string; value: string }) {
   return (
@@ -47,10 +47,20 @@ export default function ProfilePage() {
     })()
   }, [address])
 
-  if (!isConnected) return <Navigate to="/" replace />
+  if (!isConnected) {
+    return (
+      <ConnectGate
+        title="Connect your wallet to see your profile"
+        description="Your profile shows the pots you created and your USDC balance on Arc Mainnet. Connect to view them."
+      />
+    )
+  }
 
   return (
     <main className="relative z-10 mx-auto max-w-6xl px-4 pb-28 pt-10 sm:px-6">
+      <h1 className="mb-6 text-3xl font-bold" style={{ letterSpacing: '-0.02em' }}>
+        Your profile
+      </h1>
       {/* Identity */}
       <div className="rise-in mb-10">
         <div className="flex items-center gap-4">

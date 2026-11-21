@@ -1,11 +1,11 @@
 import { useState } from 'react'
-import { NavLink, useNavigate } from 'react-router-dom'
-import { useAccount, useConnect, useDisconnect, useReadContract } from 'wagmi'
-import { injected } from 'wagmi/connectors'
+import { Link, NavLink, useNavigate } from 'react-router-dom'
+import { useAccount, useDisconnect, useReadContract } from 'wagmi'
 import { erc20Abi } from 'viem'
 import { Menu, X, LogOut, Copy, Check, User, Layers } from 'lucide-react'
 import { USDC_ADDRESS, ARC_CHAIN_ID } from '../contract'
 import { formatUsdc } from '../utils'
+import ConnectWalletButton from './ConnectWalletButton'
 
 function shortAddr(addr: string) {
   return `${addr.slice(0, 6)}…${addr.slice(-4)}`
@@ -25,7 +25,6 @@ function useUsdcBalance(address?: `0x${string}`) {
 
 export default function Header() {
   const { address, isConnected } = useAccount()
-  const { connect, isPending: connecting } = useConnect()
   const { disconnect } = useDisconnect()
   const navigate = useNavigate()
   const balance = useUsdcBalance(address)
@@ -56,14 +55,15 @@ export default function Header() {
       style={{ borderColor: 'rgba(27,24,19,0.10)' }}
     >
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
-        {/* Brand */}
-        <button
-          onClick={() => void navigate('/')}
+        {/* Brand — a link, not a button, so it is a real home link */}
+        <Link
+          to="/"
           className="text-xl font-bold"
           style={{ color: 'var(--color-laterite)' }}
+          aria-label="IPIN — home"
         >
           IPIN
-        </button>
+        </Link>
 
         {/* Desktop nav + wallet */}
         <div className="hidden items-center gap-5 sm:flex">
@@ -126,13 +126,7 @@ export default function Header() {
               )}
             </div>
           ) : (
-            <button
-              onClick={() => connect({ connector: injected() })}
-              disabled={connecting}
-              className="btn-primary h-10 px-5 text-sm"
-            >
-              {connecting ? 'Connecting…' : 'Connect wallet'}
-            </button>
+            <ConnectWalletButton className="btn-primary h-10 px-5 text-sm" />
           )}
         </div>
 
@@ -148,13 +142,7 @@ export default function Header() {
               {mobileOpen ? <X className="size-5" /> : <Menu className="size-5" />}
             </button>
           ) : (
-            <button
-              onClick={() => connect({ connector: injected() })}
-              disabled={connecting}
-              className="btn-primary h-10 px-5 text-sm"
-            >
-              {connecting ? 'Connecting…' : 'Connect wallet'}
-            </button>
+            <ConnectWalletButton className="btn-primary h-10 px-5 text-sm" />
           )}
         </div>
       </div>

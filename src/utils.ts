@@ -2,6 +2,18 @@ export function formatAddress(addr: string): string {
   return `${addr.slice(0, 6)}...${addr.slice(-4)}`
 }
 
+// Protocol fee: 0.25% (25 bps) capped at 20 USDC — mirrors
+// IPINDistributor.FEE_BPS / FEE_CAP in contracts/IPINDistributor.sol.
+// Used for fee previews only; the Fund flow still reads the exact
+// fee from the contract via calculateFee.
+export const FEE_BPS = 25n
+export const FEE_CAP_USDC = 20_000_000n // 20 USDC, 6 decimals
+
+export function calculateFee(amount: bigint): bigint {
+  const fee = (amount * FEE_BPS) / 10_000n
+  return fee > FEE_CAP_USDC ? FEE_CAP_USDC : fee
+}
+
 export function formatUsdc(raw: bigint, decimals = 6): string {
   const n = Number(raw) / 10 ** decimals
   return new Intl.NumberFormat('en-US', {

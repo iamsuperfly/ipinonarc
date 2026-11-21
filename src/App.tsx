@@ -4,6 +4,7 @@ import WrongChainBanner from './components/WrongChainBanner'
 import LandingPage from './pages/LandingPage'
 import PotsPage from './pages/PotsPage'
 import ProfilePage from './pages/ProfilePage'
+import NotFoundPage from './pages/NotFoundPage'
 
 export default function App() {
   const { pathname } = useLocation()
@@ -18,6 +19,7 @@ export default function App() {
         <Route path="/" element={<LandingPage />} />
         <Route path="/pots" element={<PotsPage />} />
         <Route path="/profile" element={<ProfilePage />} />
+        <Route path="*" element={<NotFoundPage />} />
       </Routes>
 
       {/* Footer — landing only */}

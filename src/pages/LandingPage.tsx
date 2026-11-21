@@ -1,25 +1,17 @@
 import { useNavigate } from 'react-router-dom'
-import { useAccount, useConnect } from 'wagmi'
-import { injected } from 'wagmi/connectors'
+import { useAccount } from 'wagmi'
+import ConnectWalletButton from '../components/ConnectWalletButton'
 
 export default function LandingPage() {
   const { isConnected } = useAccount()
-  const { connect, isPending } = useConnect()
   const navigate = useNavigate()
-
-  const handleCTA = () => {
-    if (isConnected) {
-      void navigate('/pots')
-    } else {
-      connect({ connector: injected() })
-    }
-  }
 
   return (
     <main className="relative z-10 mx-auto max-w-6xl px-4 pb-28 pt-10 sm:px-6">
       <section className="grid items-start gap-12 lg:grid-cols-2">
-        {/* Left: hero */}
-        <div className="rise-in">
+        {/* Left: hero — no rise-in here, so the headline is visible
+            on first paint instead of starting almost invisible */}
+        <div>
           <h1
             className="text-4xl font-bold leading-tight sm:text-5xl"
             style={{ color: 'var(--color-ink)', letterSpacing: '-0.02em' }}
@@ -35,23 +27,54 @@ export default function LandingPage() {
           </p>
 
           <div className="mt-8">
-            <button
-              onClick={handleCTA}
-              disabled={isPending}
-              className="btn-primary px-8 text-base"
-            >
-              {isPending
-                ? 'Connecting…'
-                : isConnected
-                ? 'Go to my pots →'
-                : 'Connect wallet'}
-            </button>
+            {isConnected ? (
+              <button
+                onClick={() => void navigate('/pots')}
+                className="btn-primary px-8 text-base"
+              >
+                Go to my pots →
+              </button>
+            ) : (
+              <>
+                <ConnectWalletButton className="btn-primary px-8 text-base" />
+                <p className="mt-3 text-sm" style={{ color: 'var(--color-mute)' }}>
+                  No wallet yet?{' '}
+                  <a
+                    href="https://metamask.io/download/"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="font-semibold hover:underline"
+                    style={{ color: 'var(--color-laterite)' }}
+                  >
+                    Get MetaMask
+                  </a>{' '}
+                  or{' '}
+                  <a
+                    href="https://rabby.io/"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="font-semibold hover:underline"
+                    style={{ color: 'var(--color-laterite)' }}
+                  >
+                    Rabby
+                  </a>{' '}
+                  — then connect.
+                </p>
+              </>
+            )}
           </div>
 
-          <ol id="how" className="mt-12 grid gap-4 sm:grid-cols-2">
+          <h2
+            id="how"
+            className="mt-12 text-xl font-bold"
+            style={{ letterSpacing: '-0.01em' }}
+          >
+            How it works
+          </h2>
+          <ol aria-labelledby="how" className="mt-4 grid gap-4 sm:grid-cols-2">
             {([
               ['Create', 'Name it. Paste addresses. Set equal or custom splits.'],
-              ['Fund', 'Approve USDC (amount + 0.25% fee) and deposit into the pot.'],
+              ['Fund', 'Approve USDC (amount + 0.25% fee, max 20 USDC) and deposit into the pot.'],
               ['Pay', 'One transaction sends to every address at once.'],
               ['Verify', 'The Arc transaction is the record.'],
             ] as [string, string][]).map(([t, d]) => (

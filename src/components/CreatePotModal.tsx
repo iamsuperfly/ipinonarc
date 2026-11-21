@@ -5,7 +5,7 @@ import { X, Plus, Trash2, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { decodeEventLog } from 'viem'
 import { IPIN_CONTRACT, IPIN_ADDRESS, ARC_CHAIN_ID } from '../contract'
-import { parseOnchainError } from '../utils'
+import { calculateFee, formatUsdc, parseOnchainError } from '../utils'
 import { savePot } from '../supabase'
 
 /** Parse a human USDC string (e.g. "10.50") into 6-decimal bigint */
@@ -153,6 +153,24 @@ export default function CreatePotModal({ open, onClose, onCreated }: Props) {
 
   const filledAddresses = rows.filter(r => r.address.trim()).length
 
+  // Fee preview (fix 4): the fee is charged when the pot is funded,
+  // not when it is created — show it here so the total is no surprise.
+  // Estimate only; the Fund flow reads the exact fee from the contract.
+  const totalAllocated = (() => {
+    if (splitMode === 'equal') {
+      const total = parseFloat(equalTotal)
+      return Number.isFinite(total) && total > 0 ? parseUsdc(equalTotal) : 0n
+    }
+    let sum = 0n
+    for (const row of rows) {
+      const n = parseFloat(row.amount)
+      if (Number.isFinite(n) && n > 0) sum += parseUsdc(row.amount)
+    }
+    return sum
+  })()
+  const feeEstimate = calculateFee(totalAllocated)
+  const totalToFund = totalAllocated + feeEstimate
+
   return (
     <AnimatePresence>
       {open && (
@@ -299,6 +317,31 @@ export default function CreatePotModal({ open, onClose, onCreated }: Props) {
                   </button>
                 </div>
               </div>
+
+              {/* Fee preview */}
+              {totalAllocated > 0n && (
+                <div
+                  className="mb-4 rounded-2xl px-4 py-3 text-sm space-y-1"
+                  style={{ background: 'var(--color-ground)', border: '1px solid rgba(27,24,19,0.08)' }}
+                >
+                  <div className="flex justify-between">
+                    <span style={{ color: 'var(--color-mute)' }}>To recipients</span>
+                    <span className="font-mono font-semibold tabular-nums">{formatUsdc(totalAllocated)} USDC</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span style={{ color: 'var(--color-mute)' }}>Estimated service fee (0.25%, max 20 USDC)</span>
+                    <span className="font-mono tabular-nums" style={{ color: 'var(--color-mute)' }}>{formatUsdc(feeEstimate)} USDC</span>
+                  </div>
+                  <div className="flex justify-between border-t pt-1" style={{ borderColor: 'rgba(27,24,19,0.08)' }}>
+                    <span className="font-semibold">Estimated total to fund</span>
+                    <span className="font-mono font-bold tabular-nums">{formatUsdc(totalToFund)} USDC</span>
+                  </div>
+                  <p className="text-xs" style={{ color: 'var(--color-mute)' }}>
+                    The fee is charged when you fund the pot, not when you create it.
+                    Recipients always receive their full allocation.
+                  </p>
+                </div>
+              )}
 
               {/* In-flight status */}
               {(isPending || isConfirming) && (

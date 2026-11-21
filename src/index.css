@@ -81,6 +81,15 @@ main, footer, header {
 .btn-primary:active { transform: scale(0.98); }
 .btn-primary:disabled { opacity: 0.45; pointer-events: none; }
 
+/* Compact header variant — same look, smaller height (the base
+   .btn-primary forces a 3rem min-height, which is too big for the header) */
+.btn-primary-sm {
+  min-height: 2.25rem;
+  padding: 0 1rem;
+  font-size: 0.875rem;
+  box-shadow: 0 4px 10px rgba(0, 122, 102, 0.18);
+}
+
 .btn-ghost {
   display: inline-flex;
   align-items: center;
